@@ -1,0 +1,18 @@
+.games-chest-menu { margin-block: .75rem .25rem; }
+.games-chest-menu .recent-games-icons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem;
+  margin-block: .25rem;
+}
+.games-chest-menu .recent-games-icons a {
+  display: inline-grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid currentColor;
+  border-radius: .5em;
+  background: #fffaf0;
+  color: #244938;
+}
+.games-chest-menu .all-games { color: inherit; }
