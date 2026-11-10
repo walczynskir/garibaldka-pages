@@ -164,6 +164,15 @@ button.playing-card.stop-required-card {
   }
   .table-only :is(#opponent, #supply) h2 { flex-basis: auto; }
   .table-only :is(#opponent, #supply) > div { flex: none; }
+  .table-only :is(#opponent, #supply) > div:not(.personal-actions) { row-gap: 6px; }
+  .table-only .game .playing-card:not(.reserve-faces .playing-card) {
+    --rank-size: calc(var(--fullscreen-card-width) * .44);
+    --suit-size: calc(var(--fullscreen-card-width) * .46);
+  }
+  body.large.table-only .game .playing-card:not(.reserve-faces .playing-card) {
+    --rank-size: calc(var(--fullscreen-card-width) * .50);
+    --suit-size: calc(var(--fullscreen-card-width) * .52);
+  }
   .table-only :is(#opponent, #supply) > div > span { font-size: .78em; line-height: 1.1; }
   .table-only #supply .personal-actions { flex-basis: auto; }
   .table-only #supply .personal-actions button { padding-inline: 4px; }
