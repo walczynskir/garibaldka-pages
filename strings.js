@@ -181,3 +181,68 @@ const settlementStrings = {
   it: ['Proponi di decidere la partita','Il computer propone di decidere la partita','Vince chi ha meno carte. A parità è un pareggio.','Decidi la partita','Il computer vuole continuare. Puoi riproporlo dopo due turni senza progressi.','Partita decisa in base alle carte rimaste.'],
   uk: ['Запропонувати розв’язку','Комп’ютер пропонує розв’язку','Перемагає той, у кого менше карт. Однакова кількість означає нічию.','Визначити результат','Комп’ютер хоче грати далі. Після двох ходів без прогресу можна запропонувати знову.','Результат визначено за кількістю карт.']
 };
+
+const settingsGroupStrings = {
+  pl: { play: 'Rozgrywka', stop: 'Stop!', controls: 'Sterowanie i podpowiedzi', display: 'Wygląd i informacje' },
+  en: { play: 'Gameplay', stop: 'Stop!', controls: 'Controls and hints', display: 'Display and information' },
+  es: { play: 'Partida', stop: '¡Alto!', controls: 'Controles y ayudas', display: 'Aspecto e información' },
+  de: { play: 'Spiel', stop: 'Stop!', controls: 'Steuerung und Hinweise', display: 'Anzeige und Informationen' },
+  'zh-Hans': { play: '游戏规则', stop: '停！', controls: '操作和提示', display: '显示和信息' },
+  hi: { play: 'खेल', stop: 'स्टॉप!', controls: 'नियंत्रण और संकेत', display: 'दिखावट और जानकारी' },
+  fr: { play: 'Partie', stop: 'Stop !', controls: 'Commandes et aides', display: 'Affichage et informations' },
+  ar: { play: 'اللعب', stop: 'توقف!', controls: 'التحكم والتلميحات', display: 'العرض والمعلومات' },
+  it: { play: 'Partita', stop: 'Stop!', controls: 'Comandi e suggerimenti', display: 'Aspetto e informazioni' },
+  uk: { play: 'Гра', stop: 'Стоп!', controls: 'Керування й підказки', display: 'Вигляд та інформація' }
+};
+
+const reservePriorityStrings = {
+  pl: ['Pierwszeństwo Magazynku','Przy włączonym „Stop!” karta z Magazynku ma pierwszeństwo, jeśli pasuje na środek. Po wyłączeniu wybierasz dowolne dostępne zagranie na środek. Działa od razu.'],
+  en: ['Reserve priority','With Stop! on, play a reserve card to the center first when it fits. Turn this off to choose any available foundation move. Applies immediately.'],
+  es: ['Prioridad de la reserva','Con «¡Alto!» activado, juega primero desde la reserva si la carta encaja en una base. Desactívalo para elegir cualquier jugada a una base. Se aplica de inmediato.'],
+  de: ['Vorrang der Reserve','Mit „Stop!“ hat eine passende Reservekarte Vorrang. Ohne diese Option sind alle möglichen Züge zur Mitte gleichberechtigt. Gilt sofort.'],
+  'zh-Hans': ['储备堆优先','启用“停！”时，能放到中央的储备牌优先。关闭后可任选合法的中央走法。立即生效。'],
+  hi: ['भंडार को प्राथमिकता','स्टॉप! चालू होने पर केंद्र में रख सकने वाला भंडार का पत्ता पहले खेलें। इसे बंद करके केंद्र की कोई भी मान्य चाल चुनें। तुरंत लागू होता है।'],
+  fr: ['Priorité à la réserve','Avec « Stop ! », jouez d’abord la carte de réserve si elle peut aller au centre. Désactivez cette option pour choisir librement le coup vers le centre. Effet immédiat.'],
+  ar: ['أولوية الاحتياط','عند تفعيل «توقف!» تُلعب بطاقة الاحتياط أولًا إذا كانت تناسب الوسط. عطّل الخيار لاختيار أي حركة متاحة إلى الوسط. يسري فورًا.'],
+  it: ['Priorità alla riserva','Con Stop! attivo, gioca prima dalla riserva se la carta entra in una base. Disattiva per scegliere qualsiasi mossa verso una base. Vale subito.'],
+  uk: ['Пріоритет резерву','З активним «Стоп!» першою зіграйте карту резерву, якщо вона підходить до центру. Вимкніть, щоб вибирати будь-який доступний хід до центру. Діє відразу.']
+};
+
+const unlimitedStopStrings = {
+  pl: ['Bez limitu — czekaj na Kontynuuj','Bez limitu komputer czeka na „Kontynuuj” po każdej położonej karcie, także na środku i w Koszu.'],
+  en: ['No limit — wait for Continue','With no limit, the computer waits for Continue after every card it places, including on a foundation or waste pile.'],
+  es: ['Sin límite — esperar a Continuar','Sin límite, la computadora espera a que pulses Continuar tras colocar cada carta, incluso en una base o descarte.'],
+  de: ['Ohne Zeitlimit — auf Weiter warten','Ohne Zeitlimit wartet der Computer nach jeder gelegten Karte auf Weiter, auch auf Grundstapeln und Ablagen.'],
+  'zh-Hans': ['不限时 — 等待继续','不限时时，电脑每放一张牌后都等待你点击继续，包括放到中央或弃牌堆。'],
+  hi: ['कोई सीमा नहीं — जारी रखें की प्रतीक्षा','बिना सीमा के कंप्यूटर हर पत्ता रखने के बाद जारी रखें की प्रतीक्षा करता है, केंद्र या त्याग ढेर पर भी।'],
+  fr: ['Sans limite — attendre Continuer','Sans limite, l’ordinateur attend Continuer après chaque carte posée, y compris sur une fondation ou une défausse.'],
+  ar: ['بلا حد — انتظر المتابعة','بلا حد، ينتظر الحاسوب زر المتابعة بعد وضع كل بطاقة، حتى في الوسط أو المهملات.'],
+  it: ['Senza limite — attendi Continua','Senza limite, il computer aspetta Continua dopo ogni carta posata, anche su una base o sugli scarti.'],
+  uk: ['Без обмежень — чекати на «Продовжити»','Без обмежень комп’ютер чекає на «Продовжити» після кожної викладеної карти, зокрема в центр або скид.']
+};
+
+const drawnFirstStrings = {
+  pl: 'Po odkryciu karty z Ręki najpierw ją zagraj albo odłóż do własnego Kosza, by zakończyć turę.',
+  en: 'After revealing a card from your hand, play it first or discard it to end your turn.',
+  es: 'Al revelar una carta de la mano, juégala primero o descártala para terminar el turno.',
+  de: 'Spiele eine aufgedeckte Handkarte zuerst oder lege sie ab, um deinen Zug zu beenden.',
+  'zh-Hans': '翻开手牌后，必须先打出这张牌，或将其弃置以结束回合。',
+  hi: 'गड्डी से पत्ता खोलने के बाद पहले वही पत्ता खेलें या उसे त्यागकर अपनी बारी समाप्त करें।',
+  fr: 'Après avoir retourné une carte du talon, jouez-la en premier ou défaussez-la pour terminer votre tour.',
+  ar: 'بعد كشف بطاقة من الرزمة، العبها أولًا أو ضعها في المهملات لإنهاء دورك.',
+  it: 'Dopo aver scoperto una carta dal mazzo, giocala per prima o scartala per terminare il turno.',
+  uk: 'Відкривши карту з колоди, зіграйте її першою або відкладіть у скид, щоб завершити хід.'
+};
+
+const rotateHintStrings = {
+  pl: 'Obróć telefon, aby zobaczyć szerszy stół.',
+  en: 'Rotate your phone to see a wider table.',
+  es: 'Gira el teléfono para ver una mesa más ancha.',
+  de: 'Drehe dein Handy, um mehr vom Tisch zu sehen.',
+  'zh-Hans': '旋转手机以查看更多桌面空间。',
+  hi: 'चौड़ी मेज़ देखने के लिए फ़ोन घुमाएँ।',
+  fr: 'Tournez votre téléphone pour élargir la table.',
+  ar: 'أدر هاتفك لعرض طاولة أعرض.',
+  it: 'Ruota il telefono per vedere un tavolo più ampio.',
+  uk: 'Поверніть телефон, щоб побачити ширший стіл.'
+};

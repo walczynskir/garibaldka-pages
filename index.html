@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="shared-palettes.css?v=shared-palettes-2">
 <link rel="stylesheet" href="themes.css?v=shared-palettes-2">
 <link rel="stylesheet" href="shared-game.css?v=fullscreen-1">
-<link rel="stylesheet" href="pasjans.css?v=shared-palettes-2"><link rel="stylesheet" href="garibaldka.css?v=0.3.0">
+<link rel="stylesheet" href="pasjans.css?v=0.3.5"><link rel="stylesheet" href="garibaldka.css?v=0.6.1">
 <link rel="stylesheet" href="shared-victory.css?v=6">
 <link rel="stylesheet" href="games-chest-menu.css?v=recent-1"><script defer src="games-chest-menu.js?v=footer-1" data-game="garibaldka"></script>
 <script defer src="https://cloud.umami.is/script.js" data-website-id="a4d24ffd-fa55-44e7-8c3b-dc5a5e42a2f2" data-domains="garibaldka.walczynskir.chatgpt.site" data-tag="garibaldka"></script>
@@ -27,15 +27,18 @@
       <button id="settings-button" class="shared-settings-button" aria-label="Settings" aria-haspopup="dialog"></button>
     </div>
   </div>
+  <p id="rotate-hint" translate="no"></p>
   <section class="card game" translate="no">
     <div id="opponent" class="supply"></div>
-    <div id="tableau" class="solitaire-board" dir="ltr"></div>
-    <p id="status" role="status"></p>
-    <p id="settlement-notice" role="status" hidden></p>
-    <button id="propose-settlement" type="button" hidden></button>
-    <p id="stop-notice" role="status" hidden></p>
-    <button id="acknowledge-stop" class="primary" type="button" hidden></button>
-    <div id="challenge" class="supply"></div>
+    <div class="table-area">
+      <div id="tableau" class="solitaire-board" dir="ltr"></div>
+      <p id="status" role="status"></p>
+      <p id="settlement-notice" role="status" hidden></p>
+      <button id="propose-settlement" type="button" hidden></button>
+      <p id="stop-notice" role="status" hidden></p>
+      <button id="acknowledge-stop" class="primary" type="button" hidden></button>
+      <div id="challenge" class="supply"></div>
+    </div>
     <div id="supply" class="supply"></div>
     <details id="move-log" hidden>
       <summary id="move-log-title"></summary>
@@ -44,7 +47,7 @@
     </details>
   </section>
 </main>
-<footer><section class="support-causes" aria-labelledby="support-title"><h2 id="support-title">Dobra gra może zrobić coś dobrego.</h2><p translate="no">Jeśli chcesz, wesprzyj pomoc osobom dotkniętym wojną w Ukrainie lub psom i kotom w Gdyni.</p><div class="support-links"><a href="https://www.pah.org.pl/gdzie-dzialamy/ukraina/" target="_blank" rel="noopener noreferrer"><b aria-hidden="true" translate="no">🇺🇦</b> <span>Pomoc Ukrainie · PAH</span> <b aria-hidden="true" translate="no">↗</b></a><a href="https://ciapkowo.pl/" target="_blank" rel="noopener noreferrer"><b aria-hidden="true" translate="no">🐾</b> <span>Pomoc psom i kotom · Ciapkowo w Gdyni</span> <b aria-hidden="true" translate="no">↗</b></a></div><p class="support-note">Linki prowadzą do oficjalnych stron organizacji. Nie zbieramy wpłat ani nie pobieramy prowizji.</p></section><a id="credits-link" href="credits.html">Autorzy i licencje</a><span id="footer-version" translate="no">v0.3.2</span><span id="save-note" translate="no"></span>
+<footer><section class="support-causes" aria-labelledby="support-title"><h2 id="support-title">Dobra gra może zrobić coś dobrego.</h2><p translate="no">Jeśli chcesz, wesprzyj pomoc osobom dotkniętym wojną w Ukrainie lub psom i kotom w Gdyni.</p><div class="support-links"><a href="https://www.pah.org.pl/gdzie-dzialamy/ukraina/" target="_blank" rel="noopener noreferrer"><b aria-hidden="true" translate="no">🇺🇦</b> <span>Pomoc Ukrainie · PAH</span> <b aria-hidden="true" translate="no">↗</b></a><a href="https://ciapkowo.pl/" target="_blank" rel="noopener noreferrer"><b aria-hidden="true" translate="no">🐾</b> <span>Pomoc psom i kotom · Ciapkowo w Gdyni</span> <b aria-hidden="true" translate="no">↗</b></a></div><p class="support-note">Linki prowadzą do oficjalnych stron organizacji. Nie zbieramy wpłat ani nie pobieramy prowizji.</p></section><a id="credits-link" href="credits.html">Autorzy i licencje</a><span id="footer-version" translate="no">v0.6.1</span><span id="save-note" translate="no"></span>
 
 <nav class="games-chest-menu" translate="no"><div class="recent-games" hidden><span></span><div class="recent-games-icons"></div></div><a class="all-games" href="https://games-chest.com/">Wszystkie gry</a></nav>
 </footer>
@@ -61,107 +64,127 @@
 <dialog id="settings" aria-labelledby="settings-title">
   <form method="dialog">
     <div class="dialog-heading"><h2 id="settings-title">Settings</h2><button aria-label="Close">×</button></div>
-    <div class="setting-item">
-      <div class="setting-row">
-        <label><input type="checkbox" id="strict"> <span id="strict-label" translate="no"></span></label>
-        <button class="setting-info" type="button" aria-expanded="false" aria-controls="strict-note" aria-labelledby="strict-label">ⓘ</button>
+    <fieldset>
+      <legend id="settings-group-play" translate="no"></legend>
+      <div class="setting-item">
+        <div class="setting-row">
+          <label><span id="difficulty-label" translate="no"></span>
+            <select id="difficulty" translate="no">
+              <option value="easy"></option><option value="medium"></option>
+              <option value="high"></option><option value="expert"></option>
+            </select>
+          </label>
+          <button class="setting-info" type="button" aria-expanded="false" aria-controls="difficulty-note" aria-labelledby="difficulty-label">ⓘ</button>
+        </div>
+        <p class="setting-description small muted" id="difficulty-note" translate="no" hidden></p>
       </div>
-      <p class="setting-description small muted" id="strict-note" translate="no" hidden></p>
-    </div>
-    <div class="setting-item">
-      <div class="setting-row">
-        <label><input type="checkbox" id="kingsOnly"> <span id="kingsOnly-label" translate="no"></span></label>
-        <button class="setting-info" type="button" aria-expanded="false" aria-controls="kingsOnly-note" aria-labelledby="kingsOnly-label">ⓘ</button>
+      <div class="setting-item">
+        <div class="setting-row">
+          <label><input type="checkbox" id="kingsOnly"> <span id="kingsOnly-label" translate="no"></span></label>
+          <button class="setting-info" type="button" aria-expanded="false" aria-controls="kingsOnly-note" aria-labelledby="kingsOnly-label">ⓘ</button>
+        </div>
+        <p class="setting-description small muted" id="kingsOnly-note" translate="no" hidden></p>
       </div>
-      <p class="setting-description small muted" id="kingsOnly-note" translate="no" hidden></p>
-    </div>
-    <div class="setting-item">
-      <div class="setting-row">
-        <label><input type="checkbox" id="showUndo"> <span id="showUndo-label" translate="no"></span></label>
-        <button class="setting-info" type="button" aria-expanded="false" aria-controls="showUndo-note" aria-labelledby="showUndo-label">ⓘ</button>
+    </fieldset>
+    <fieldset>
+      <legend id="settings-group-stop" translate="no"></legend>
+      <div class="setting-item">
+        <div class="setting-row">
+          <label><input type="checkbox" id="strict"> <span id="strict-label" translate="no"></span></label>
+          <button class="setting-info" type="button" aria-expanded="false" aria-controls="strict-note" aria-labelledby="strict-label">ⓘ</button>
+        </div>
+        <p class="setting-description small muted" id="strict-note" translate="no" hidden></p>
       </div>
-      <p class="setting-description small muted" id="showUndo-note" translate="no" hidden></p>
-    </div>
-    <div class="setting-item">
-      <div class="setting-row">
-        <label><input type="checkbox" id="showCounts"> <span id="showCounts-label" translate="no"></span></label>
-        <button class="setting-info" type="button" aria-expanded="false" aria-controls="showCounts-note" aria-labelledby="showCounts-label">ⓘ</button>
+      <div class="setting-item">
+        <div class="setting-row">
+          <label><input type="checkbox" id="reservePriority"> <span id="reservePriority-label" translate="no"></span></label>
+          <button class="setting-info" type="button" aria-expanded="false" aria-controls="reservePriority-note" aria-labelledby="reservePriority-label">ⓘ</button>
+        </div>
+        <p class="setting-description small muted" id="reservePriority-note" translate="no" hidden></p>
       </div>
-      <p class="setting-description small muted" id="showCounts-note" translate="no" hidden></p>
-    </div>
-    <div class="setting-item">
-      <div class="setting-row">
-        <label><input type="checkbox" id="showMoveLog"> <span id="showMoveLog-label" translate="no"></span></label>
-        <button class="setting-info" type="button" aria-expanded="false" aria-controls="showMoveLog-note" aria-labelledby="showMoveLog-label">ⓘ</button>
-      </div>
-      <p class="setting-description small muted" id="showMoveLog-note" translate="no" hidden></p>
-    </div>
-    <div class="setting-item">
-      <div class="setting-row">
-        <label><span id="animationSpeed-label" translate="no"></span>
-          <select id="animationSpeed" translate="no">
-            <option value="slow">Wolna</option>
-            <option value="normal" selected>Normalna</option>
-            <option value="fast">Szybka</option>
-          </select>
-        </label>
-        <button class="setting-info" type="button" aria-expanded="false" aria-controls="animationSpeed-note" aria-labelledby="animationSpeed-label">ⓘ</button>
-      </div>
-      <p class="setting-description small muted" id="animationSpeed-note" translate="no" hidden></p>
-    </div>
-    <div class="setting-item">
-      <div class="setting-row">
-        <label><input type="checkbox" id="showTargets"> <span id="showTargets-label" translate="no"></span></label>
-        <button class="setting-info" type="button" aria-expanded="false" aria-controls="showTargets-note" aria-labelledby="showTargets-label">ⓘ</button>
-      </div>
-      <p class="setting-description small muted" id="showTargets-note" translate="no" hidden></p>
-    </div>
-    <div class="setting-item">
-      <div class="setting-row">
-        <label><input type="checkbox" id="lockDrawn" checked> <span id="lockDrawn-label" translate="no"></span></label>
-        <button class="setting-info" type="button" aria-expanded="false" aria-controls="lockDrawn-note" aria-labelledby="lockDrawn-label">ⓘ</button>
-      </div>
-      <p class="setting-description small muted" id="lockDrawn-note" translate="no" hidden></p>
-    </div>
-    <div class="setting-item">
-      <div class="setting-row">
-        <label><input type="checkbox" id="distinguishDecks" checked> <span id="distinguishDecks-label" translate="no"></span></label>
-        <button class="setting-info" type="button" aria-expanded="false" aria-controls="distinguishDecks-note" aria-labelledby="distinguishDecks-label">ⓘ</button>
-      </div>
-      <p class="setting-description small muted" id="distinguishDecks-note" translate="no" hidden></p>
-    </div>
-    <div class="setting-item">
-      <div class="setting-row">
-        <label><span id="stopWindow-label" translate="no"></span>
-          <select id="stopWindow" translate="no">
+      <div class="setting-item">
+        <div class="setting-row">
+          <label><span id="stopWindow-label" translate="no"></span>
+            <select id="stopWindow" translate="no">
+              <option id="stopWindow-unlimited" value="unlimited" selected>Bez limitu</option>
             <option value="2000">2 s</option>
-            <option value="4000" selected>4 s</option>
-            <option value="7000">7 s</option>
-          </select>
-        </label>
-        <button class="setting-info" type="button" aria-expanded="false" aria-controls="stopWindow-note" aria-labelledby="stopWindow-label">ⓘ</button>
+              <option value="4000">4 s</option>
+              <option value="7000">7 s</option>
+            </select>
+          </label>
+          <button class="setting-info" type="button" aria-expanded="false" aria-controls="stopWindow-note" aria-labelledby="stopWindow-label">ⓘ</button>
+        </div>
+        <p class="setting-description small muted" id="stopWindow-note" translate="no" hidden></p>
       </div>
-      <p class="setting-description small muted" id="stopWindow-note" translate="no" hidden></p>
-    </div>
-    <div class="setting-item">
-      <div class="setting-row">
-        <label><span id="difficulty-label" translate="no"></span>
-          <select id="difficulty" translate="no">
-            <option value="easy"></option><option value="medium"></option>
-            <option value="high"></option><option value="expert"></option>
-          </select>
-        </label>
-        <button class="setting-info" type="button" aria-expanded="false" aria-controls="difficulty-note" aria-labelledby="difficulty-label">ⓘ</button>
+      <div class="setting-item">
+        <div class="setting-row">
+          <label><input type="checkbox" id="falseStopPenalty"> <span id="falseStopPenalty-label" translate="no"></span></label>
+          <button class="setting-info" type="button" aria-expanded="false" aria-controls="falseStopPenalty-note" aria-labelledby="falseStopPenalty-label">ⓘ</button>
+        </div>
+        <p class="setting-description small muted" id="falseStopPenalty-note" translate="no" hidden></p>
       </div>
-      <p class="setting-description small muted" id="difficulty-note" translate="no" hidden></p>
-    </div>
-    <div class="setting-item">
-      <div class="setting-row">
-        <label><input type="checkbox" id="falseStopPenalty"> <span id="falseStopPenalty-label" translate="no"></span></label>
-        <button class="setting-info" type="button" aria-expanded="false" aria-controls="falseStopPenalty-note" aria-labelledby="falseStopPenalty-label">ⓘ</button>
+    </fieldset>
+    <fieldset>
+      <legend id="settings-group-controls" translate="no"></legend>
+      <div class="setting-item">
+        <div class="setting-row">
+          <label><input type="checkbox" id="lockDrawn" checked> <span id="lockDrawn-label" translate="no"></span></label>
+          <button class="setting-info" type="button" aria-expanded="false" aria-controls="lockDrawn-note" aria-labelledby="lockDrawn-label">ⓘ</button>
+        </div>
+        <p class="setting-description small muted" id="lockDrawn-note" translate="no" hidden></p>
       </div>
-      <p class="setting-description small muted" id="falseStopPenalty-note" translate="no" hidden></p>
-    </div>
+      <div class="setting-item">
+        <div class="setting-row">
+          <label><input type="checkbox" id="showTargets"> <span id="showTargets-label" translate="no"></span></label>
+          <button class="setting-info" type="button" aria-expanded="false" aria-controls="showTargets-note" aria-labelledby="showTargets-label">ⓘ</button>
+        </div>
+        <p class="setting-description small muted" id="showTargets-note" translate="no" hidden></p>
+      </div>
+      <div class="setting-item">
+        <div class="setting-row">
+          <label><input type="checkbox" id="showUndo"> <span id="showUndo-label" translate="no"></span></label>
+          <button class="setting-info" type="button" aria-expanded="false" aria-controls="showUndo-note" aria-labelledby="showUndo-label">ⓘ</button>
+        </div>
+        <p class="setting-description small muted" id="showUndo-note" translate="no" hidden></p>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend id="settings-group-display" translate="no"></legend>
+      <div class="setting-item">
+        <div class="setting-row">
+          <label><span id="animationSpeed-label" translate="no"></span>
+            <select id="animationSpeed" translate="no">
+              <option value="slow">Wolna</option>
+              <option value="normal" selected>Normalna</option>
+              <option value="fast">Szybka</option>
+            </select>
+          </label>
+          <button class="setting-info" type="button" aria-expanded="false" aria-controls="animationSpeed-note" aria-labelledby="animationSpeed-label">ⓘ</button>
+        </div>
+        <p class="setting-description small muted" id="animationSpeed-note" translate="no" hidden></p>
+      </div>
+      <div class="setting-item">
+        <div class="setting-row">
+          <label><input type="checkbox" id="distinguishDecks" checked> <span id="distinguishDecks-label" translate="no"></span></label>
+          <button class="setting-info" type="button" aria-expanded="false" aria-controls="distinguishDecks-note" aria-labelledby="distinguishDecks-label">ⓘ</button>
+        </div>
+        <p class="setting-description small muted" id="distinguishDecks-note" translate="no" hidden></p>
+      </div>
+      <div class="setting-item">
+        <div class="setting-row">
+          <label><input type="checkbox" id="showCounts"> <span id="showCounts-label" translate="no"></span></label>
+          <button class="setting-info" type="button" aria-expanded="false" aria-controls="showCounts-note" aria-labelledby="showCounts-label">ⓘ</button>
+        </div>
+        <p class="setting-description small muted" id="showCounts-note" translate="no" hidden></p>
+      </div>
+      <div class="setting-item">
+        <div class="setting-row">
+          <label><input type="checkbox" id="showMoveLog"> <span id="showMoveLog-label" translate="no"></span></label>
+          <button class="setting-info" type="button" aria-expanded="false" aria-controls="showMoveLog-note" aria-labelledby="showMoveLog-label">ⓘ</button>
+        </div>
+        <p class="setting-description small muted" id="showMoveLog-note" translate="no" hidden></p>
+      </div>
+    </fieldset>
     <button class="primary">Done</button>
   </form>
 </dialog>
@@ -175,9 +198,9 @@
 </dialog>
 <script src="locales.js"></script>
 <script src="i18n.js"></script>
-<script src="engine.js?v=0.3.0"></script>
-<script src="strings.js?v=0.3.1"></script>
+<script src="engine.js?v=0.5.1"></script>
+<script src="strings.js?v=0.6.0"></script>
 <script src="shared-victory.js?v=5"></script>
-<script src="app.js?v=0.3.2"></script>
+<script src="app.js?v=0.6.0"></script>
 </body>
 </html>

@@ -13,7 +13,7 @@
     try { return JSON.parse(localStorage.getItem(key)); } catch { return null; }
   }
   const prefs = { language: 'pl', theme: 'porcelain', contrast: false, large: false,
-    strict: true, stopWindow: "4000", difficulty: "medium", falseStopPenalty: false, kingsOnly: true, showUndo: false, showCounts: false, showMoveLog: false, showTargets: false, lockDrawn: true, distinguishDecks: true, animationSpeed: "normal", ...read(prefsKey) };
+    strict: true, reservePriority: false, stopWindow: "unlimited", difficulty: "medium", falseStopPenalty: false, kingsOnly: true, showUndo: false, showCounts: false, showMoveLog: false, showTargets: false, lockDrawn: true, distinguishDecks: true, animationSpeed: "normal", ...read(prefsKey) };
   let wins = read(winsKey) ?? 0;
   const savedGame = read(gameKey);
   let state = savedGame?.state ?? savedGame ?? engine.deal(prefs);
@@ -27,14 +27,17 @@
   let computerTimer;
   let computerFlight;
   let stopReady = false;
+  let orientationLocked = false;
   const speedFactors = { slow: 1.6, normal: 1, fast: 0.6 };
   const motionTime = ms => ms * (speedFactors[prefs.animationSpeed] ?? 1);
   const overlooksOpportunity = () => Math.random() < ({ easy: .25, medium: .10 }[prefs.difficulty] ?? 0);
+  const overlooksRow = () => Math.random() < ({ easy: .08, medium: .03 }[prefs.difficulty] ?? 0);
   const human = 0;
   const computer = 1;
   const finished = () => state.winner !== null || state.stalled || state.abandoned;
   const waitingForStopAcknowledgment = () => state.stopBy === computer &&
-    state.turn === computer && !finished();
+    (state.turn === computer || state.pending?.required.length > 0) && !finished();
+  const pendingCorrectionIndex = () => engine.preferredFoundationIndex(state, state.pending.required);
   const humanCanPlay = () => state.turn === human && !state.pending && !finished();
   const messages = () => opponentStrings[prefs.language] ?? opponentStrings.en;
   const ref = (group, index) => ({ group, index });
@@ -92,7 +95,7 @@
     const result = run();
     if (result === 'played' || result === true) {
       const entries = state.moveLog ??= [];
-      if (stopBy !== undefined) state.stopBy = stopBy;
+      if (stopBy === human) state.stopBy = stopBy;
       entries.push({ ...action, player, stopBy, falseStop, card: action.type === 'draw'
         ? state.players[player].drawn.at(-1) : card });
       if (entries.length > 40) entries.shift();
@@ -164,13 +167,19 @@
 
   const opensStopWindow = action => action?.type === 'move' && ['rows', 'reserve'].includes(action.to.group);
 
+  const waitsForContinue = () => prefs.stopWindow === 'unlimited';
+  const canChallengeComputerMove = action => state.strict && opensStopWindow(action);
+  const reviewsComputerMove = action => canChallengeComputerMove(action) ||
+    (waitsForContinue() && (action?.type === 'move' ||
+      (action?.type === 'end' && state.players[computer].drawn.length > 0)));
+
   function acceptComputerMove() {
     if (state.turn !== computer || !state.pending) return;
     update(() => applyAction(state.pending.action, () => engine.resolveChallenge(state, human)));
   }
 
   function callStop() {
-    if (!stopReady || state.turn !== computer || !state.pending) return;
+    if (!stopReady || state.turn !== computer || !canChallengeComputerMove(state.pending?.action)) return;
     if (!state.pending.required.length) {
       update(() => {
         if (prefs.falseStopPenalty) state.skipHumanTurn = true;
@@ -197,16 +206,18 @@
               { selectDrawn: action.type === 'draw' });
             return;
           }
-          const index = engine.preferredFoundationIndex(state, state.pending.required);
-          playComputerMove(state.pending.required[index], () => engine.resolveChallenge(state, computer, index), computer);
+          update(() => { state.stopBy = computer; });
         }, motionTime(650));
-      } else if (!opensStopWindow(state.pending.action)) {
+      } else if (!reviewsComputerMove(state.pending.action)) {
         computerTimer = setTimeout(acceptComputerMove, 0);
       } else {
         const openWindow = () => {
           stopReady = true;
-          cardAt('stop').disabled = false;
-          computerTimer = setTimeout(acceptComputerMove, Number(prefs.stopWindow));
+          const stop = cardAt('stop');
+          if (stop) stop.disabled = !canChallengeComputerMove(state.pending.action);
+          const proceed = cardAt('allow');
+          if (proceed) proceed.disabled = false;
+          if (!waitsForContinue()) computerTimer = setTimeout(acceptComputerMove, Number(prefs.stopWindow));
         };
         if (computerFlight) computerTimer = setTimeout(openWindow, motionTime(360));
         else openWindow();
@@ -216,10 +227,10 @@
     if (state.turn === computer) {
       computerTimer = setTimeout(() => {
         const { continuation, ...action } = engine.computerAction(
-          state, state.computerContinuation, overlooksOpportunity(), prefs.difficulty, overlooksOpportunity);
+          state, state.computerContinuation, overlooksOpportunity(), prefs.difficulty, overlooksOpportunity, overlooksRow);
         playComputerMove(action, () => {
           state.computerContinuation = continuation;
-          return engine.play(state, action, state.strict && opensStopWindow(action));
+          return engine.play(state, action, reviewsComputerMove(action));
         });
       }, motionTime(550));
     }
@@ -256,10 +267,17 @@
   }
 
   function applyStopPreference() {
-    if (!prefs.strict && state.pending) {
+    const keepReview = state.turn === computer && waitsForContinue();
+    if (!prefs.strict && state.pending && !keepReview) {
+      if (state.turn === human && state.stopBy === computer) delete state.stopBy;
       return applyAction(state.pending.action, () => engine.setStrict(state, false));
     }
-    engine.setStrict(state, prefs.strict);
+    engine.setStrict(state, prefs.strict, keepReview);
+    engine.setReservePriority(state, prefs.reservePriority);
+    if (state.pending && state.turn === human && !state.pending.required.length) {
+      if (state.stopBy === computer) delete state.stopBy;
+      return applyAction(state.pending.action, () => engine.resolveChallenge(state, computer));
+    }
   }
 
   function stepHistory(from, to) {
@@ -299,7 +317,7 @@
       update(() => applyAction({ type: 'move', from: selected, to: pile }), { record: true });
       return;
     }
-    if (prefs.lockDrawn && selected?.group === 'drawn') return;
+    if (state.players[human].drawn.length && (pile.group !== 'drawn' || prefs.lockDrawn)) return;
     const own = pile.index === state.turn && ['reserve','drawn'].includes(pile.group);
     selected = (own || pile.group === 'rows') && pileCards(pile).length &&
       (!selected || key(selected) !== key(pile)) ? pile : undefined;
@@ -314,7 +332,7 @@
     const source = pile && attempt?.type === 'move' && key(pile) === key(attempt.from);
     if (preview) card = pileCards(attempt.from).at(-1);
     if (source) {
-      card = undefined;
+      card = pile.group === 'reserve' ? engine.visibleReserve(state, pile.index).at(-2) : undefined;
       count--;
     }
     const node = pile ? button('', event => choose(pile, event.detail > 0), key(pile)) : document.createElement('span');
@@ -391,6 +409,7 @@
       const count = player[group].length + (group === 'stock' ? player.drawn.length : 0);
       caption.textContent = label(text) + (prefs.showCounts ? ' · ' + count : '');
       let node;
+      let reserveFaces;
       if (group === 'stock' && !player.drawn.length) {
         const nextCard = player.stock.at(-1);
         node = button('·', () => update(() => applyAction({ type: 'draw' }), { selectDrawn: true, record: true }), 'draw' + index);
@@ -402,7 +421,8 @@
         const actual = group === 'stock' ? 'drawn' : group;
         node = cardNode(player[actual].at(-1), caption.textContent, ref(actual, index), count);
         const previewSource = node.classList.contains('stop-preview-source');
-        if (actual === 'drawn' || (actual === 'reserve' && previewSource)) {
+        const visible = actual === 'reserve' ? engine.visibleReserve(state, index) : [];
+        if (actual === 'drawn' || (actual === 'reserve' && previewSource && visible.length < 2)) {
           const nextCard = actual === 'drawn' ? player.stock.at(-1) : player.reserve.at(-2);
           node.classList.toggle('second-deck-back', prefs.distinguishDecks && nextCard >= 52);
           if (previewSource && nextCard !== undefined) {
@@ -411,8 +431,15 @@
             node.setAttribute('aria-label', caption.textContent);
           }
         }
+        const coveredFaces = node.classList.contains('stop-preview') ? visible : visible.slice(0, previewSource ? -2 : -1);
+        if (coveredFaces.length) {
+          reserveFaces = document.createElement('div');
+          reserveFaces.className = 'reserve-faces';
+          for (const card of coveredFaces) reserveFaces.append(cardNode(card));
+        }
       }
       wrap.append(node, caption);
+      if (reserveFaces) wrap.append(reserveFaces);
       target.append(wrap);
     }
     if (active && index === human) {
@@ -428,13 +455,19 @@
   function challenge() {
     const area = get('challenge');
     area.replaceChildren();
-    if (!state.strict || finished()) return;
-    const canCall = state.turn === computer && opensStopWindow(state.pending?.action);
-    const stop = button('Stop!', callStop, 'stop');
-    stop.className = 'primary stop-call';
-    stop.disabled = !canCall || !stopReady;
-    area.append(stop);
-    if (canCall) area.append(button(continueStopLabels[prefs.language] ?? continueStopLabels.en, acceptComputerMove, 'allow'));
+    if (finished()) return;
+    const action = state.turn === computer ? state.pending?.action : null;
+    if (state.strict && (!action || canChallengeComputerMove(action))) {
+      const stop = button('Stop!', callStop, 'stop');
+      stop.className = 'primary stop-call';
+      stop.disabled = !stopReady || !canChallengeComputerMove(action);
+      area.append(stop);
+    }
+    if (action && reviewsComputerMove(action)) {
+      const proceed = button(continueStopLabels[prefs.language] ?? continueStopLabels.en, acceptComputerMove, 'allow');
+      proceed.disabled = !stopReady;
+      area.append(proceed);
+    }
   }
 
   function renderMoveLog() {
@@ -482,6 +515,8 @@
     return reason + ' ' + result + ' · ' + remainingCounts();
   }
   function render() {
+    const groups = settingsGroupStrings[prefs.language] ?? settingsGroupStrings.en;
+    for (const [group, title] of Object.entries(groups)) get('settings-group-' + group).textContent = title;
     computerFlight?.cancel();
     const [deckLabel, deckNote] = deckBackStrings[prefs.language] ?? deckBackStrings.en;
     get('distinguishDecks-label').textContent = deckLabel;
@@ -514,7 +549,9 @@
     [...get('difficulty').options].forEach((option, index) => { option.textContent = levels[index + 2]; });
     const stopLabels = stopStrings[prefs.language] ?? stopStrings.en;
     get('stopWindow-label').textContent = stopLabels[2];
-    get('stopWindow-note').textContent = levels[11];
+    const [unlimitedLabel, unlimitedNote] = unlimitedStopStrings[prefs.language] ?? unlimitedStopStrings.en;
+    get('stopWindow-unlimited').textContent = unlimitedLabel;
+    get('stopWindow-note').textContent = levels[11] + ' ' + unlimitedNote;
     const acknowledge = get('acknowledge-stop');
     acknowledge.hidden = !waitingForStopAcknowledgment();
     acknowledge.textContent = continueStopLabels[prefs.language] ?? continueStopLabels.en;
@@ -538,19 +575,28 @@
     get('theme').value = prefs.theme;
     for (const [id, index] of Object.entries({'kingsOnly-label':13,'kingsOnly-note':14,
       'strict-note':15,'rules':17})) get(id).textContent = label(index);
+    get('rules').textContent += ' ' + (drawnFirstStrings[prefs.language] ?? drawnFirstStrings.en);
     get('strict-label').textContent = 'Stop!';
+    const [priorityLabel, priorityNote] = reservePriorityStrings[prefs.language] ?? reservePriorityStrings.en;
+    get('reservePriority-label').textContent = priorityLabel;
+    get('reservePriority-note').textContent = priorityNote;
+    get('reservePriority').disabled = !prefs.strict;
     get('strict-note').textContent += ' ' + immediateRuleLabels[prefs.language];
     get('kingsOnly-note').textContent += ' ' + immediateRuleLabels[prefs.language];
     get('sequence-help').textContent = [state.strict ? label(15) : '', state.kingsOnly ? label(14) : ''].filter(Boolean).join(' ');
     const full = document.body.classList.contains('table-only');
+    get('rotate-hint').textContent = rotateHintStrings[prefs.language] ?? rotateHintStrings.en;
     get('fullscreen').setAttribute('aria-pressed', full);
     get('fullscreen').setAttribute('aria-label', label(full ? 19 : 18));
     get('fullscreen').querySelector('.fullscreen-label').textContent = label(full ? 19 : 18);
     get('help-button').textContent = get('help-title').textContent = prefs.language === 'pl' ? 'Jak grać?' : tr('How to play');
-    get('tableau').closest('.game').classList.toggle('computer-turn', state.turn === computer && !finished());
     board();
     personal(get('opponent'), 1);
     personal(get('supply'), 0);
+    if (waitingForStopAcknowledgment() && state.turn === human) {
+      const correction = state.pending.required[pendingCorrectionIndex()];
+      cardAt(key(correction.from))?.classList.add('stop-required-card');
+    }
     challenge();
     renderMoveLog();
     const status = get('status');
@@ -563,7 +609,7 @@
     get('settlement-notice').hidden = !refused;
     get('settlement-notice').textContent = settlementLabels()[4];
     const text = state.abandoned ? endingLabels()[3] + ' · ' + remainingCounts() : state.stalled ? clashLabel() : state.winner !== null ? winnerLabel()
-      : state.pending ? messages()[state.turn === human ? 6 : 3] : messages()[state.turn + 2];
+      : state.pending ? messages()[state.turn === human && !waitingForStopAcknowledgment() ? 6 : 3] : messages()[state.turn + 2];
     if (status.textContent !== text) status.textContent = text;
     get('save-note').textContent = label(saved ? 20 : 21);
     i18n.apply(document.body, prefs.language);
@@ -577,7 +623,7 @@
   i18n.addLanguages(get('language'));
   for (const name of Object.keys(themes)) get('theme').add(new Option(themes[name], name));
   if (locked(prefs.theme) || !Object.hasOwn(themes, prefs.theme)) prefs.theme = 'porcelain';
-  for (const name of ['language','theme','large','strict','kingsOnly','showUndo','showCounts','showMoveLog','animationSpeed','showTargets','lockDrawn','distinguishDecks','stopWindow','difficulty','falseStopPenalty']) {
+  for (const name of ['language','theme','large','strict','kingsOnly','showUndo','showCounts','showMoveLog','animationSpeed','showTargets','lockDrawn','distinguishDecks','stopWindow','difficulty','falseStopPenalty','reservePriority']) {
     const node = get(name);
     const checkbox = node.type === 'checkbox';
     if (checkbox) node.checked = prefs[name];
@@ -586,12 +632,16 @@
       prefs[name] = checkbox ? node.checked : node.value;
       if (name === 'theme') prefs.contrast = false;
       if (name === 'animationSpeed' || name === 'stopWindow') scheduleComputer();
-      if (name === 'strict') {
+      if (name === 'strict' || name === 'reservePriority') {
         update(applyStopPreference);
         return;
       }
       if (name === 'kingsOnly') {
-        update(() => engine.setKingsOnly(state, prefs.kingsOnly));
+        update(() => {
+          const wasWaiting = waitingForStopAcknowledgment() && state.turn === human;
+          engine.setKingsOnly(state, prefs.kingsOnly);
+          if (wasWaiting && !state.pending) delete state.stopBy;
+        });
         return;
       }
       save();
@@ -601,7 +651,15 @@
   get('status').tabIndex = -1;
   get('acknowledge-stop').onclick = () => {
     if (!waitingForStopAcknowledgment()) return;
-    update(() => { delete state.stopBy; });
+    if (state.turn === human && state.pending) {
+      const index = pendingCorrectionIndex();
+      playComputerMove(state.pending.required[index], () => {
+        delete state.stopBy;
+        return engine.resolveChallenge(state, computer, index);
+      }, computer);
+    } else {
+      update(() => { delete state.stopBy; });
+    }
     get('status').focus({ preventScroll: true });
   };
   get('undo').onclick = () => stepHistory(history, future);
@@ -655,16 +713,35 @@
       info.setAttribute('aria-expanded', !note.hidden);
     };
   }
+  function unlockOrientation() {
+    if (!orientationLocked) return;
+    orientationLocked = false;
+    screen.orientation.unlock();
+  }
+
   get('fullscreen').onclick = async () => {
     const open = document.body.classList.toggle('table-only');
     render();
     try {
-      if (open) await document.documentElement.requestFullscreen();
-      else if (document.fullscreenElement) await document.exitFullscreen();
-    } catch { /* The expanded table also works without native fullscreen. */ }
+      if (!open) {
+        unlockOrientation();
+        if (document.fullscreenElement) await document.exitFullscreen();
+        return;
+      }
+      await document.documentElement.requestFullscreen?.();
+      const phone = matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) <= 600;
+      if (phone && document.body.classList.contains('table-only') && screen.orientation?.lock) {
+        await screen.orientation.lock('landscape');
+        orientationLocked = true;
+        if (!document.body.classList.contains('table-only')) unlockOrientation();
+      }
+    } catch { /* The expanded table and the rotate hint also work without native fullscreen. */ }
   };
   document.addEventListener('fullscreenchange', () => {
-    if (!document.fullscreenElement) document.body.classList.remove('table-only');
+    if (!document.fullscreenElement) {
+      document.body.classList.remove('table-only');
+      unlockOrientation();
+    }
     render();
   });
   restoreFoundationOrder();

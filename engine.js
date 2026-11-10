@@ -6,7 +6,7 @@
   const top = pile => pile.at(-1);
   const refs = group => Array.from({ length: 8 }, (_, index) => ({ group, index }));
 
-  function deal({ strict = true, kingsOnly = true, lastWinner = null } = {}, random = Math.random) {
+  function deal({ strict = true, kingsOnly = true, reservePriority = false, lastWinner = null } = {}, random = Math.random) {
     const rows = [];
     const players = [0, 1].map(player => {
       const deck = Array.from({ length: 52 }, (_, index) => player * 52 + index);
@@ -20,7 +20,7 @@
     });
     const state = { rows, goals: Array.from({ length: 8 }, () => []), players,
       turn: lastWinner === null ? Math.floor(random() * 2) : 1 - lastWinner,
-      kingsOnly, strict, pending: null, winner: null, stalled: false };
+      kingsOnly, strict, reservePriority, pending: null, winner: null, stalled: false };
     recordPosition(state);
     return state;
   }
@@ -38,6 +38,7 @@
   }
 
   function canMove(state, from, to) {
+    if (state.players[state.turn].drawn.length && from.group !== 'drawn') return false;
     if (from.group !== 'rows' &&
         !(from.index === state.turn && ['drawn', 'reserve'].includes(from.group))) return false;
     const source = pile(state, from);
@@ -77,17 +78,22 @@
   function requiredMoves(state) {
     if (!state.strict) return [];
     const reserve = goalMoves(state, [{ group: 'reserve', index: state.turn }]);
-    if (reserve.length) return reserve;
-    return goalMoves(state, [...refs('rows'), { group: 'drawn', index: state.turn }]);
+    if (state.reservePriority && reserve.length) return reserve;
+    return [...reserve, ...goalMoves(state, [...refs('rows'), { group: 'drawn', index: state.turn }])];
   }
 
   function sameRef(left, right) {
     return left.group === right?.group && left.index === right.index;
   }
 
+  function visibleReserve(state, index) {
+    const reserve = state.players[index].reserve;
+    return reserve.slice(-(state.reserveFaceUp?.[index] || 1));
+  }
+
   function recordPosition(state) {
-    const key = JSON.stringify([state.turn, state.strict, state.kingsOnly, state.skipHumanTurn ?? false,
-      state.rows, state.goals, state.players.map(({ reserve, stock, waste, drawn }) => [reserve, stock, waste, drawn])]);
+    const key = JSON.stringify([state.turn, state.strict, state.reservePriority ?? false, state.kingsOnly, state.skipHumanTurn ?? false,
+      state.rows, state.goals, [0, 1].map(index => visibleReserve(state, index).length), state.players.map(({ reserve, stock, waste, drawn }) => [reserve, stock, waste, drawn])]);
     const visits = state.positionVisits ??= [];
     const count = visits.filter(position => position === key).length + 1;
     visits.push(key);
@@ -186,10 +192,19 @@
     trackProgress(state);
     const player = state.players[state.turn];
     switch (action.type) {
-      case 'move':
-        pile(state, action.to).push(pile(state, action.from).pop());
+      case 'move': {
+        const { from, to } = action;
+        if (from.group === 'reserve' || to.group === 'reserve') {
+          const faceUp = state.reserveFaceUp ??= state.players.map(side => Math.min(1, side.reserve.length));
+          if (from.group === 'reserve') {
+            faceUp[from.index] = pile(state, from).length > 1 ? Math.max(1, faceUp[from.index] - 1) : 0;
+          }
+          if (to.group === 'reserve') faceUp[to.index] = visibleReserve(state, to.index).length + 1;
+        }
+        pile(state, to).push(pile(state, from).pop());
         if (action.to.group === 'goals') state.positionVisits = [];
         break;
+      }
       case 'draw':
         if (!player.stock.length) player.stock = player.waste.splice(0).reverse();
         player.drawn.push(player.stock.pop());
@@ -202,6 +217,17 @@
     if (action.type === 'end' && state.winner === null) finishTurn(state, 1 - state.turn);
   }
 
+  function missedRequiredMoves(state, action) {
+    const required = requiredMoves(state);
+    return required.some(move => sameRef(move.from, action.from) && sameRef(move.to, action.to))
+      ? [] : required;
+  }
+
+  function setReservePriority(state, enabled) {
+    state.reservePriority = enabled;
+    if (state.pending) state.pending.required = missedRequiredMoves(state, state.pending.action);
+  }
+
   function play(state, action, review = false) {
     if (state.winner !== null || state.stalled || state.abandoned || state.pending) return 'blocked';
     const player = state.players[state.turn];
@@ -210,11 +236,9 @@
       : action.type === 'draw' ? canDraw
       : action.type === 'end' && (player.drawn.length || !canDraw);
     if (!legal) return 'invalid';
-    const required = requiredMoves(state);
-    const missed = required.length && !required.some(move =>
-      sameRef(move.from, action.from) && sameRef(move.to, action.to));
-    if (review || missed) {
-      state.pending = { action, required: missed ? required : [] };
+    const missed = missedRequiredMoves(state, action);
+    if (review || missed.length) {
+      state.pending = { action, required: missed };
       return 'challenge';
     }
     apply(state, action);
@@ -246,7 +270,7 @@
       const neighbor = state.goals[index ^ 1][0];
       if (neighbor === undefined) return Math.floor(index / 2) % 2 === suit(card) % 2 ? 2 : 1;
       if (suit(neighbor) === suit(card)) return 4;
-      return color(neighbor) === color(card) ? 3 : 0;
+      return 0;
     }
     return moves.reduce((best, move, index) =>
       sameRef(from, move.from) && score(move.to.index) > score(moves[best].to.index) ? index : best, 0);
@@ -305,13 +329,16 @@
     }
   }
 
-  function ordinaryMove(state, sources, level, includeWaste = true) {
+  function ordinaryMove(state, sources, level, includeWaste = true, overlookRow = () => false) {
     const targets = [...refs('rows').filter(to => state.rows[to.index].length),
       ...refs('rows').filter(to => !state.rows[to.index].length),
       ...(includeWaste ? [{ group: 'waste', index: 1 - state.turn }] : []),
       { group: 'reserve', index: 1 - state.turn }];
-    const moves = sources.flatMap(from => targets.filter(to => canMove(state, from, to))
+    let moves = sources.flatMap(from => targets.filter(to => canMove(state, from, to))
       .map(to => ({ type: 'move', from, to })));
+    if (moves.some(move => move.to.group === 'rows') && overlookRow()) {
+      moves = moves.filter(move => move.to.group !== 'rows');
+    }
     if (level !== 'expert' || !moves.length) return moves[0];
     return moves.reduce((best, move) => expertMoveScore(state, move) > expertMoveScore(state, best) ? move : best);
   }
@@ -360,7 +387,7 @@
     if (score > 0) return { type: 'move', from, to, score };
   }
 
-  function computerAction(state, continuation = [], overlook = false, level = 'high', overlookWaste = () => false) {
+  function computerAction(state, continuation = [], overlook = false, level = 'high', overlookWaste = () => false, overlookRow = () => false) {
     const required = requiredMoves(state);
     const reserve = { group: 'reserve', index: state.turn };
     const drawn = { group: 'drawn', index: state.turn };
@@ -376,7 +403,8 @@
       return next.length ? { ...first, continuation: next } : first;
     }
 
-    const ordinary = ordinaryMove(state, [reserve, drawn], level);
+    const ordinary = ordinaryMove(state, [reserve, drawn], level, true, overlookRow);
+    if (state.players[state.turn].drawn.length) return ordinary ?? { type: 'end' };
     if (ordinary && level !== 'expert') return ordinary;
     const attack = tableauWasteMove(state, level);
     if (attack && (!ordinary || attack.score > expertMoveScore(state, ordinary)) && !overlookWaste()) {
@@ -408,12 +436,12 @@
     if (action?.type === 'move' && !canMove(state, action.from, action.to)) state.pending = null;
   }
 
-  function setStrict(state, enabled) {
+  function setStrict(state, enabled, keepReview = false) {
     state.strict = enabled;
-    if (!enabled && state.pending) return resolveChallenge(state, 1 - state.turn);
+    if (!enabled && state.pending && !keepReview) return resolveChallenge(state, 1 - state.turn);
   }
 
-  const engine = { rank, suit, color, deal, canMove, requiredMoves, play, resolveChallenge, computerAction, preferredFoundationIndex, setKingsOnly, setStrict, quickFoundation, cardsRemaining, resultWinner, settlementAvailability, proposeSettlement, declineSettlement };
+  const engine = { rank, suit, color, deal, canMove, requiredMoves, play, resolveChallenge, computerAction, preferredFoundationIndex, setKingsOnly, setStrict, quickFoundation, cardsRemaining, resultWinner, settlementAvailability, proposeSettlement, declineSettlement, visibleReserve, setReservePriority };
   if (typeof module === 'object') module.exports = engine;
   else root.GaribaldkaEngine = engine;
 })(globalThis);
