@@ -3,16 +3,35 @@
   const i18n = DominoI18n;
   const get = id => document.getElementById(id);
   const gameKey = 'garibaldka.game.v1';
+  const gardenLabels = {
+    pl: 'Ogród', en: 'Garden', es: 'Jardín',
+    de: 'Garten', 'zh-Hans': '花园', hi: 'बगीचा',
+    fr: 'Jardin', ar: 'الحديقة', it: 'Giardino',
+    uk: 'Сад'
+  };
+  const classicLabels = {
+    pl: 'Klasyczny', en: 'Classic', es: 'Clásico', de: 'Klassisch', 'zh-Hans': '经典',
+    hi: 'क्लासिक', fr: 'Classique', ar: 'كلاسيكي', it: 'Classico', uk: 'Класичний'
+  };
+  const tropicsLabels = {
+    pl: 'Tropiki', en: 'Tropics', es: 'Trópicos', de: 'Tropen', 'zh-Hans': '热带',
+    hi: 'उष्णकटिबंध', fr: 'Tropiques', ar: 'المناطق الاستوائية', it: 'Tropici', uk: 'Тропіки'
+  };
+  const beachLabels = {
+    pl: 'Plaża', en: 'Beach', es: 'Playa', de: 'Strand', 'zh-Hans': '海滩',
+    hi: 'समुद्र तट', fr: 'Plage', ar: 'الشاطئ', it: 'Spiaggia', uk: 'Пляж'
+  };
+  const customThemeLabels = { garden: gardenLabels, classic: classicLabels, tropics: tropicsLabels, beach: beachLabels };
   const prefsKey = 'garibaldka.preferences.v1';
   const winsKey = 'garibaldka.achievements.v1';
-  const themes = { porcelain: 'Porcelain', ink: 'Ink & paper', sage: 'Sage', studio: 'Studio',
+  const themes = { classic: 'Classic', garden: 'Garden', tropics: 'Tropics', beach: 'Beach', porcelain: 'Porcelain', ink: 'Ink & paper', sage: 'Sage', studio: 'Studio',
     forma: 'Forma', energy: 'Energy', tangerine: 'Tangerine', ukraine: 'Ukraine',
     copper: 'Copper', 'night-sky': 'Night sky' };
   const rewards = { copper: 3, 'night-sky': 10 };
   function read(key) {
     try { return JSON.parse(localStorage.getItem(key)); } catch { return null; }
   }
-  const prefs = { language: 'pl', theme: 'porcelain', contrast: false, large: false,
+  const prefs = { language: 'pl', theme: 'classic', contrast: false, large: false,
     strict: true, reservePriority: false, stopWindow: "unlimited", difficulty: "medium", falseStopPenalty: false, kingsOnly: true, showUndo: false, showCounts: false, showMoveLog: false, showTargets: false, lockDrawn: true, distinguishDecks: true, animationSpeed: "normal", ...read(prefsKey) };
   let wins = read(winsKey) ?? 0;
   const savedGame = read(gameKey);
@@ -394,7 +413,7 @@
     get('tableau').replaceChildren(makeRows(0, 'left-rows'), goals, makeRows(4, 'right-rows'));
   }
 
-  function personal(target, index) {
+  function personal(target, index, acknowledge) {
     const player = state.players[index];
     const active = state.turn === index;
     const blocked = !humanCanPlay();
@@ -442,14 +461,22 @@
       if (reserveFaces) wrap.append(reserveFaces);
       target.append(wrap);
     }
+    const actions = document.createElement('div');
+    actions.className = 'personal-actions';
     if (active && index === human) {
       const end = button(label(8), () => update(() => applyAction({ type: 'end' }), { record: true }), 'end');
       end.disabled = blocked || (!player.drawn.length && Boolean(player.stock.length || player.waste.length));
-      const actions = document.createElement('div');
-      actions.className = 'personal-actions';
       actions.append(end);
-      target.append(actions);
     }
+    const review = index === human && !finished() && state.turn === computer ? state.pending?.action : null;
+    if (review && reviewsComputerMove(review)) {
+      const proceed = button(continueStopLabels[prefs.language] ?? continueStopLabels.en, acceptComputerMove, 'allow');
+      proceed.disabled = !stopReady;
+      actions.append(proceed);
+    }
+    if (acknowledge && !acknowledge.hidden) actions.append(acknowledge);
+    if (actions.childElementCount) target.append(actions);
+    if (acknowledge?.hidden) target.append(acknowledge);
   }
 
   function challenge() {
@@ -462,11 +489,6 @@
       stop.className = 'primary stop-call';
       stop.disabled = !stopReady || !canChallengeComputerMove(action);
       area.append(stop);
-    }
-    if (action && reviewsComputerMove(action)) {
-      const proceed = button(continueStopLabels[prefs.language] ?? continueStopLabels.en, acceptComputerMove, 'allow');
-      proceed.disabled = !stopReady;
-      area.append(proceed);
     }
   }
 
@@ -560,7 +582,9 @@
     const stopText = state.falseStop ? levels[state.falseStop === 'penalty' ? 10 : 9] : stopLabels[state.stopBy] ?? '';
     if (notice.textContent !== stopText) notice.textContent = stopText;
     const oldFocus = document.activeElement?.dataset.focus;
-    document.documentElement.dataset.theme = prefs.contrast ? 'contrast' : prefs.theme;
+    const garden = prefs.theme === 'garden' && !prefs.contrast;
+    document.documentElement.dataset.theme = prefs.contrast ? 'contrast' : garden ? 'sage' : prefs.theme;
+    document.documentElement.classList.toggle('garden-theme', garden);
     document.body.classList.toggle('large', prefs.large);
     get('contrast').textContent = '◐ ' + tr('High contrast');
     get('contrast').setAttribute('aria-pressed', prefs.contrast);
@@ -570,7 +594,7 @@
     get('theme-label').textContent = tr('Appearance');
     for (const option of get('theme').options) {
       option.disabled = locked(option.value);
-      option.textContent = tr(themes[option.value]) + (option.disabled ? ' · ' + wins + '/' + rewards[option.value] : '');
+      option.textContent = (customThemeLabels[option.value]?.[prefs.language] ?? tr(themes[option.value])) + (option.disabled ? ' · ' + wins + '/' + rewards[option.value] : '');
     }
     get('theme').value = prefs.theme;
     for (const [id, index] of Object.entries({'kingsOnly-label':13,'kingsOnly-note':14,
@@ -592,7 +616,7 @@
     get('help-button').textContent = get('help-title').textContent = prefs.language === 'pl' ? 'Jak grać?' : tr('How to play');
     board();
     personal(get('opponent'), 1);
-    personal(get('supply'), 0);
+    personal(get('supply'), 0, acknowledge);
     if (waitingForStopAcknowledgment() && state.turn === human) {
       const correction = state.pending.required[pendingCorrectionIndex()];
       cardAt(key(correction.from))?.classList.add('stop-required-card');
@@ -616,13 +640,14 @@
     if (oldFocus) {
       const nextId = oldFocus === 'draw' + human && selected?.group === 'drawn' ? key(selected) : oldFocus;
       const next = cardAt(nextId);
-      (next && !next.disabled ? next : get('challenge').querySelector('button:not(:disabled)') ?? get('status')).focus();
+      const fallback = document.querySelector('#supply [data-focus="allow"]:enabled, #challenge button:enabled');
+      (next && !next.disabled ? next : fallback ?? get('status')).focus();
     }
   }
 
   i18n.addLanguages(get('language'));
   for (const name of Object.keys(themes)) get('theme').add(new Option(themes[name], name));
-  if (locked(prefs.theme) || !Object.hasOwn(themes, prefs.theme)) prefs.theme = 'porcelain';
+  if (locked(prefs.theme) || !Object.hasOwn(themes, prefs.theme)) prefs.theme = 'classic';
   for (const name of ['language','theme','large','strict','kingsOnly','showUndo','showCounts','showMoveLog','animationSpeed','showTargets','lockDrawn','distinguishDecks','stopWindow','difficulty','falseStopPenalty','reservePriority']) {
     const node = get(name);
     const checkbox = node.type === 'checkbox';

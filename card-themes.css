@@ -1,0 +1,127 @@
+/* Card themes from Eight Aces 1.0.2, with Garibaldka table labels. */
+.garden-theme {
+  --scenic-background: linear-gradient(#17251738, #17251738), url("garden.webp") center / cover no-repeat;
+  background-color: var(--bg);
+}
+:root[data-theme="tropics"] {
+  --bg: #e4edf0;
+  --paper: #f3f4eb;
+  --ink: #152f42;
+  --muted: #38596b;
+  --accent: #184e77;
+  --line: #9eb6bf;
+  --wash: #dcebef;
+  --scenic-background: linear-gradient(#12304b30, #0d354230), url("tropics.webp") center / cover no-repeat;
+  background-color: var(--bg);
+}
+:root[data-theme="beach"] {
+  --bg: #ebddc5;
+  --paper: #f7f2e7;
+  --ink: #12363f;
+  --muted: #3e5b60;
+  --accent: #07586a;
+  --line: #9eaeb0;
+  --wash: #e7eee8;
+  --control-radius: 3px;
+  --scenic-background: linear-gradient(#123c451a, #123c4538), url("beach.webp") center / cover no-repeat;
+  background-color: var(--bg);
+}
+:is(.garden-theme, [data-theme="tropics"], [data-theme="beach"]) body,
+:is(.garden-theme, [data-theme="tropics"], [data-theme="beach"]) .table-only .solitaire {
+  background: var(--scenic-background) var(--bg);
+}
+:is(.garden-theme, [data-theme="tropics"], [data-theme="beach"]) body > :is(header, footer) {
+  background-color: color-mix(in srgb, var(--paper) 92%, transparent);
+}
+:is(.garden-theme, [data-theme="tropics"], [data-theme="beach"]) .game-toolbar button:not(.primary):not(:disabled) {
+  background-color: var(--paper);
+}
+:is(.garden-theme, [data-theme="tropics"], [data-theme="beach"]) .game-toolbar button:disabled {
+  background-color: var(--paper);
+  color: var(--muted);
+  opacity: 1;
+}
+:is(.garden-theme, [data-theme="tropics"], [data-theme="beach"]) .game,
+:is(.garden-theme, [data-theme="tropics"], [data-theme="beach"]) .solitaire-board {
+  background-color: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+:is(.garden-theme, [data-theme="tropics"], [data-theme="beach"]) .playing-card.empty,
+:is(.garden-theme, [data-theme="tropics"], [data-theme="beach"]) .stock-card:not(.has-stock) {
+  border-color: #e5ead6;
+  color: #f5f5ec;
+}
+
+:root[data-theme="classic"] {
+  --bg: #e7eee5;
+  --paper: #f7f5eb;
+  --ink: #182d20;
+  --muted: #496151;
+  --accent: #225e3b;
+  --line: #acbeae;
+  --wash: #deebdd;
+  --classic-felt: radial-gradient(ellipse at 50% 38%, #287846, #125032 78%);
+}
+[data-theme="classic"] .solitaire > .game,
+[data-theme="classic"] .table-only .solitaire {
+  background: var(--classic-felt);
+}
+[data-theme="classic"] .solitaire-board {
+  background-color: transparent;
+}
+[data-theme="classic"] .supply-count {
+  border-color: #e0ebdc;
+}
+[data-theme="classic"] .playing-card.empty,
+[data-theme="classic"] .stock-card:not(.has-stock) {
+  border-color: #dbe9da;
+  color: #f7f5eb;
+}
+[data-theme="classic"] .solitaire .playing-card.red { color: #b22132; }
+[data-theme="classic"] .solitaire .playing-card:focus-visible {
+  outline-color: #fff4bd;
+  outline-offset: 2px;
+}
+
+:is(.garden-theme, [data-theme="tropics"], [data-theme="beach"], [data-theme="classic"]) :is(.supply, #move-log) {
+  background-color: color-mix(in srgb, var(--paper) 88%, transparent);
+}
+:is(.garden-theme, [data-theme="tropics"], [data-theme="beach"], [data-theme="classic"]) body:not(.table-only) :is(#opponent, #supply) {
+  max-inline-size: 23em;
+  margin-inline: auto;
+}
+:is(.garden-theme, [data-theme="tropics"], [data-theme="beach"], [data-theme="classic"]) #move-log {
+  inline-size: fit-content;
+  max-inline-size: min(100%, 29em);
+  margin-inline: auto;
+  padding: .25em .75em;
+  border-radius: var(--radius);
+}
+:is(.garden-theme, [data-theme="tropics"], [data-theme="beach"], [data-theme="classic"]) #move-log summary {
+  min-block-size: 44px;
+  align-content: center;
+}
+:is(.garden-theme, [data-theme="tropics"], [data-theme="beach"], [data-theme="classic"]) .supply .playing-card.empty {
+  border-color: var(--muted);
+  color: var(--ink);
+}
+
+:is(.garden-theme, [data-theme="tropics"], [data-theme="beach"], [data-theme="classic"]) #status {
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  margin-inline: auto;
+  padding: .3em .75em;
+  border-width: 1px;
+  background-color: color-mix(in srgb, var(--paper) 88%, transparent);
+}
+:is(.garden-theme, [data-theme="tropics"], [data-theme="beach"], [data-theme="classic"]) :is(#acknowledge-stop:not([hidden]), #supply [data-focus="allow"]) {
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  min-block-size: 44px;
+  margin: .4em auto 0;
+  padding: .25em .85em;
+  background-color: color-mix(in srgb, var(--paper) 88%, transparent);
+  color: var(--accent);
+  border-color: var(--accent);
+}
