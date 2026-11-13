@@ -3,6 +3,10 @@
   --scenic-background: linear-gradient(#17251738, #17251738), url("garden.webp") center / cover no-repeat;
   background-color: var(--bg);
 }
+.tangerine-grove-theme {
+  --grove-shade: linear-gradient(#19240d22, #19240d44);
+  --scenic-background: var(--grove-shade), url("orange-grove.webp") center 44% / cover no-repeat;
+}
 :root[data-theme="tropics"] {
   --bg: #e4edf0;
   --paper: #f3f4eb;
@@ -26,29 +30,30 @@
   --scenic-background: linear-gradient(#123c451a, #123c4538), url("beach.webp") center / cover no-repeat;
   background-color: var(--bg);
 }
-:is(.garden-theme, [data-theme="tropics"], [data-theme="beach"]) body,
-:is(.garden-theme, [data-theme="tropics"], [data-theme="beach"]) .table-only .solitaire {
+:is(.garden-theme, .tangerine-grove-theme, [data-theme="tropics"], [data-theme="beach"]) body,
+:is(.garden-theme, .tangerine-grove-theme, [data-theme="tropics"], [data-theme="beach"]) .table-only .solitaire {
   background: var(--scenic-background) var(--bg);
 }
-:is(.garden-theme, [data-theme="tropics"], [data-theme="beach"]) body > :is(header, footer) {
+:is(.garden-theme, .tangerine-grove-theme, [data-theme="tropics"], [data-theme="beach"]) body > footer,
+:is(.garden-theme, [data-theme="tropics"], [data-theme="beach"]) body > header {
   background-color: color-mix(in srgb, var(--paper) 92%, transparent);
 }
-:is(.garden-theme, [data-theme="tropics"], [data-theme="beach"]) .game-toolbar button:not(.primary):not(:disabled) {
+:is(.garden-theme, .tangerine-grove-theme, [data-theme="tropics"], [data-theme="beach"]) .game-toolbar button:not(.primary):not(:disabled) {
   background-color: var(--paper);
 }
-:is(.garden-theme, [data-theme="tropics"], [data-theme="beach"]) .game-toolbar button:disabled {
+:is(.garden-theme, .tangerine-grove-theme, [data-theme="tropics"], [data-theme="beach"]) .game-toolbar button:disabled {
   background-color: var(--paper);
   color: var(--muted);
   opacity: 1;
 }
-:is(.garden-theme, [data-theme="tropics"], [data-theme="beach"]) .game,
-:is(.garden-theme, [data-theme="tropics"], [data-theme="beach"]) .solitaire-board {
+:is(.garden-theme, .tangerine-grove-theme, [data-theme="tropics"], [data-theme="beach"]) .game,
+:is(.garden-theme, .tangerine-grove-theme, [data-theme="tropics"], [data-theme="beach"]) .solitaire-board {
   background-color: transparent;
   border-color: transparent;
   box-shadow: none;
 }
-:is(.garden-theme, [data-theme="tropics"], [data-theme="beach"]) .playing-card.empty,
-:is(.garden-theme, [data-theme="tropics"], [data-theme="beach"]) .stock-card:not(.has-stock) {
+:is(.garden-theme, .tangerine-grove-theme, [data-theme="tropics"], [data-theme="beach"]) .playing-card.empty,
+:is(.garden-theme, .tangerine-grove-theme, [data-theme="tropics"], [data-theme="beach"]) .stock-card:not(.has-stock) {
   border-color: #e5ead6;
   color: #f5f5ec;
 }
@@ -84,30 +89,30 @@
   outline-offset: 2px;
 }
 
-:is(.garden-theme, [data-theme="tropics"], [data-theme="beach"], [data-theme="classic"]) :is(.supply, #move-log) {
+:is(.garden-theme, .tangerine-grove-theme, [data-theme="tropics"], [data-theme="beach"], [data-theme="classic"]) :is(.supply, #move-log) {
   background-color: color-mix(in srgb, var(--paper) 88%, transparent);
 }
-:is(.garden-theme, [data-theme="tropics"], [data-theme="beach"], [data-theme="classic"]) body:not(.table-only) :is(#opponent, #supply) {
+:is(.garden-theme, .tangerine-grove-theme, [data-theme="tropics"], [data-theme="beach"], [data-theme="classic"]) body:not(.table-only) :is(#opponent, #supply) {
   max-inline-size: 23em;
   margin-inline: auto;
 }
-:is(.garden-theme, [data-theme="tropics"], [data-theme="beach"], [data-theme="classic"]) #move-log {
+:is(.garden-theme, .tangerine-grove-theme, [data-theme="tropics"], [data-theme="beach"], [data-theme="classic"]) #move-log {
   inline-size: fit-content;
   max-inline-size: min(100%, 29em);
   margin-inline: auto;
   padding: .25em .75em;
   border-radius: var(--radius);
 }
-:is(.garden-theme, [data-theme="tropics"], [data-theme="beach"], [data-theme="classic"]) #move-log summary {
+:is(.garden-theme, .tangerine-grove-theme, [data-theme="tropics"], [data-theme="beach"], [data-theme="classic"]) #move-log summary {
   min-block-size: 44px;
   align-content: center;
 }
-:is(.garden-theme, [data-theme="tropics"], [data-theme="beach"], [data-theme="classic"]) .supply .playing-card.empty {
+:is(.garden-theme, .tangerine-grove-theme, [data-theme="tropics"], [data-theme="beach"], [data-theme="classic"]) .supply .playing-card.empty {
   border-color: var(--muted);
   color: var(--ink);
 }
 
-:is(.garden-theme, [data-theme="tropics"], [data-theme="beach"], [data-theme="classic"]) #status {
+:is(.garden-theme, .tangerine-grove-theme, [data-theme="tropics"], [data-theme="beach"], [data-theme="classic"]) #status {
   inline-size: fit-content;
   max-inline-size: 100%;
   margin-inline: auto;
@@ -115,7 +120,7 @@
   border-width: 1px;
   background-color: color-mix(in srgb, var(--paper) 88%, transparent);
 }
-:is(.garden-theme, [data-theme="tropics"], [data-theme="beach"], [data-theme="classic"]) :is(#acknowledge-stop:not([hidden]), #supply [data-focus="allow"]) {
+:is(.garden-theme, .tangerine-grove-theme, [data-theme="tropics"], [data-theme="beach"], [data-theme="classic"]) :is(#acknowledge-stop:not([hidden]), #supply [data-focus="allow"]) {
   inline-size: fit-content;
   max-inline-size: 100%;
   min-block-size: 44px;
@@ -124,4 +129,23 @@
   background-color: color-mix(in srgb, var(--paper) 88%, transparent);
   color: var(--accent);
   border-color: var(--accent);
+}
+
+@media (min-width: 601px) and (min-height: 521px) {
+  .tangerine-grove-theme body:not(.table-only) {
+    background-attachment: fixed;
+  }
+}
+
+@media (max-width: 600px) and (orientation: portrait) {
+  .tangerine-grove-theme body:not(.table-only) {
+    background: #19240d;
+  }
+  .tangerine-grove-theme .solitaire {
+    background: linear-gradient(to bottom, #19240d22 35%, #19240d) center top / 100% calc(100vw * 2 / 3) no-repeat,
+      url("orange-grove.webp") center top / 100% auto no-repeat #19240d;
+  }
+  .tangerine-grove-theme .table-only .solitaire {
+    background: var(--scenic-background) #19240d;
+  }
 }

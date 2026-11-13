@@ -21,12 +21,16 @@
     pl: 'Plaża', en: 'Beach', es: 'Playa', de: 'Strand', 'zh-Hans': '海滩',
     hi: 'समुद्र तट', fr: 'Plage', ar: 'الشاطئ', it: 'Spiaggia', uk: 'Пляж'
   };
-  const customThemeLabels = { garden: gardenLabels, classic: classicLabels, tropics: tropicsLabels, beach: beachLabels };
+  const groveLabels = {
+    pl: 'Pomarańczowy gaj', en: 'Orange Grove', es: 'Mandarinal', de: 'Mandarinenhain', 'zh-Hans': '橘子林',
+    hi: 'संतरों का बाग', fr: 'Verger de mandariniers', ar: 'بستان اليوسفي', it: 'Mandarineto', uk: 'Мандариновий гай'
+  };
+  const customThemeLabels = { garden: gardenLabels, classic: classicLabels, tropics: tropicsLabels, beach: beachLabels, 'tangerine-grove': groveLabels };
   const prefsKey = 'garibaldka.preferences.v1';
   const winsKey = 'garibaldka.achievements.v1';
   const themes = { classic: 'Classic', garden: 'Garden', tropics: 'Tropics', beach: 'Beach', porcelain: 'Porcelain', ink: 'Ink & paper', sage: 'Sage', studio: 'Studio',
     forma: 'Forma', energy: 'Energy', tangerine: 'Tangerine', ukraine: 'Ukraine',
-    copper: 'Copper', 'night-sky': 'Night sky' };
+    copper: 'Copper', 'night-sky': 'Night sky', 'tangerine-grove': 'Orange Grove' };
   const featuredThemes = ['classic', 'garden', 'tropics', 'beach'];
   const themeGroupLabels = {
     pl: ['Więcej motywów', 'Motywy za osiągnięcia'],
@@ -40,7 +44,7 @@
     it: ['Altri temi', 'Temi per i traguardi'],
     uk: ['Більше тем', 'Теми за досягнення'],
   };
-  const rewards = { copper: 3, 'night-sky': 10 };
+  const rewards = { copper: 3, 'night-sky': 10, 'tangerine-grove': 3 };
   function read(key) {
     try { return JSON.parse(localStorage.getItem(key)); } catch { return null; }
   }
@@ -596,8 +600,10 @@
     if (notice.textContent !== stopText) notice.textContent = stopText;
     const oldFocus = document.activeElement?.dataset.focus;
     const garden = prefs.theme === 'garden' && !prefs.contrast;
-    document.documentElement.dataset.theme = prefs.contrast ? 'contrast' : garden ? 'sage' : prefs.theme;
+    const grove = prefs.theme === 'tangerine-grove' && !prefs.contrast;
+    document.documentElement.dataset.theme = prefs.contrast ? 'contrast' : garden ? 'sage' : grove ? 'tangerine' : prefs.theme;
     document.documentElement.classList.toggle('garden-theme', garden);
+    document.documentElement.classList.toggle('tangerine-grove-theme', grove);
     document.body.classList.toggle('large', prefs.large);
     get('contrast').textContent = '◐ ' + tr('High contrast');
     get('contrast').setAttribute('aria-pressed', prefs.contrast);
