@@ -27,6 +27,19 @@
   const themes = { classic: 'Classic', garden: 'Garden', tropics: 'Tropics', beach: 'Beach', porcelain: 'Porcelain', ink: 'Ink & paper', sage: 'Sage', studio: 'Studio',
     forma: 'Forma', energy: 'Energy', tangerine: 'Tangerine', ukraine: 'Ukraine',
     copper: 'Copper', 'night-sky': 'Night sky' };
+  const featuredThemes = ['classic', 'garden', 'tropics', 'beach'];
+  const themeGroupLabels = {
+    pl: ['Więcej motywów', 'Motywy za osiągnięcia'],
+    en: ['More themes', 'Achievement themes'],
+    es: ['Más temas', 'Temas por logros'],
+    de: ['Weitere Designs', 'Designs für Erfolge'],
+    'zh-Hans': ['更多主题', '成就主题'],
+    hi: ['और थीम', 'उपलब्धि थीम'],
+    fr: ['Autres thèmes', 'Thèmes de récompense'],
+    ar: ['المزيد من السمات', 'سمات الإنجازات'],
+    it: ['Altri temi', 'Temi per i traguardi'],
+    uk: ['Більше тем', 'Теми за досягнення'],
+  };
   const rewards = { copper: 3, 'night-sky': 10 };
   function read(key) {
     try { return JSON.parse(localStorage.getItem(key)); } catch { return null; }
@@ -592,11 +605,14 @@
     get('large').setAttribute('aria-label', tr('Larger text'));
     get('language-label').textContent = tr('Language');
     get('theme-label').textContent = tr('Appearance');
-    for (const option of get('theme').options) {
+    const [moreLabel, rewardsLabel] = themeGroupLabels[prefs.language] ?? themeGroupLabels.en;
+    moreThemes.label = moreLabel;
+    rewardThemes.label = rewardsLabel;
+    for (const option of themeSelect.options) {
       option.disabled = locked(option.value);
       option.textContent = (customThemeLabels[option.value]?.[prefs.language] ?? tr(themes[option.value])) + (option.disabled ? ' · ' + wins + '/' + rewards[option.value] : '');
     }
-    get('theme').value = prefs.theme;
+    themeSelect.value = prefs.theme;
     for (const [id, index] of Object.entries({'kingsOnly-label':13,'kingsOnly-note':14,
       'strict-note':15,'rules':17})) get(id).textContent = label(index);
     get('rules').textContent += ' ' + (drawnFirstStrings[prefs.language] ?? drawnFirstStrings.en);
@@ -646,7 +662,18 @@
   }
 
   i18n.addLanguages(get('language'));
-  for (const name of Object.keys(themes)) get('theme').add(new Option(themes[name], name));
+  const themeSelect = get('theme');
+  const moreThemes = document.createElement('optgroup');
+  const rewardThemes = document.createElement('optgroup');
+  for (const value of Object.keys(themes)) {
+    const option = document.createElement('option');
+    option.value = value;
+    option.translate = false;
+    const group = featuredThemes.includes(value) ? themeSelect
+      : Object.hasOwn(rewards, value) ? rewardThemes : moreThemes;
+    group.append(option);
+  }
+  themeSelect.append(moreThemes, rewardThemes);
   if (locked(prefs.theme) || !Object.hasOwn(themes, prefs.theme)) prefs.theme = 'classic';
   for (const name of ['language','theme','large','strict','kingsOnly','showUndo','showCounts','showMoveLog','animationSpeed','showTargets','lockDrawn','distinguishDecks','stopWindow','difficulty','falseStopPenalty','reservePriority']) {
     const node = get(name);
