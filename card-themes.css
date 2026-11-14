@@ -157,13 +157,46 @@
   --scenic-background: linear-gradient(#131d331a, #131d3333), url("andromeda-portrait.webp") center 27% / cover no-repeat;
 }
 @media (max-width: 600px) and (orientation: portrait) {
-  :is([data-scenic-reward="copper"], [data-scenic-reward="starry-sky"]) body:not(.table-only) {
+  [data-scenic-reward="starry-sky"] body:not(.table-only) {
     background: var(--bg);
   }
+  :root[data-scenic-reward="copper"] {
+    --scenic-background: url("copper-portrait.webp") center top / 100% auto no-repeat;
+  }
+  [data-scenic-reward="copper"] .solitaire {
+    background: var(--scenic-background) #3a241d;
+  }
+  [data-scenic-reward="copper"] body:not(.table-only) {
+    background: #3a241d;
+  }
   [data-scenic-reward="copper"] body:not(.table-only) .solitaire {
-    background: url("copper-table.webp") center top / cover no-repeat var(--bg);
+    padding-block-start: clamp(28px, 10vw, 52px);
   }
   [data-scenic-reward="starry-sky"] body:not(.table-only) .solitaire {
     background: url("andromeda-portrait.webp") center top / 100% auto no-repeat var(--bg);
+  }
+}
+
+[data-scenic-reward="copper"] body > header,
+[data-scenic-reward="copper"] #rotate-hint {
+  background-color: var(--paper);
+  color: var(--ink);
+}
+[data-scenic-reward="copper"] #rotate-hint {
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
+  padding-inline: .75em;
+  border-radius: var(--radius);
+}
+@media (min-width: 601px) {
+  [data-scenic-reward="copper"] body:not(.table-only) {
+    background-attachment: fixed;
+    background-position: center top;
+  }
+}
+@media (max-width: 600px) and (orientation: portrait) {
+  [data-scenic-reward="copper"] .table-only .solitaire {
+    background-color: #3a241d;
   }
 }

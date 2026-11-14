@@ -21,12 +21,17 @@
     pl: 'Plaża', en: 'Beach', es: 'Playa', de: 'Strand', 'zh-Hans': '海滩',
     hi: 'समुद्र तट', fr: 'Plage', ar: 'الشاطئ', it: 'Spiaggia', uk: 'Пляж'
   };
-  const customThemeLabels = { garden: gardenLabels, classic: classicLabels, tropics: tropicsLabels, beach: beachLabels };
+  const copperLabels = {
+    pl: 'Miedź i patyna', en: 'Copper & Patina', es: 'Cobre y pátina', de: 'Kupfer und Patina',
+    'zh-Hans': '铜与铜绿', hi: 'तांबा और पटीना', fr: 'Cuivre et patine', ar: 'النحاس والزنجار',
+    it: 'Rame e patina', uk: 'Мідь і патина'
+  };
+  const customThemeLabels = { garden: gardenLabels, classic: classicLabels, tropics: tropicsLabels, beach: beachLabels, copper: copperLabels };
   const prefsKey = 'garibaldka.preferences.v1';
   const winsKey = 'garibaldka.achievements.v1';
   const themes = { classic: 'Classic', garden: 'Garden', tropics: 'Tropics', beach: 'Beach', porcelain: 'Porcelain', ink: 'Ink & paper', sage: 'Sage', studio: 'Studio',
     forma: 'Forma', energy: 'Energy', tangerine: 'Tangerine', ukraine: 'Ukraine',
-    copper: 'Copper', 'night-sky': 'Navy', 'starry-sky': 'Night sky', 'orange-grove': 'Orange Grove' };
+    copper: 'Copper & Patina', 'night-sky': 'Navy', 'starry-sky': 'Night sky', 'orange-grove': 'Orange Grove' };
   const featuredThemes = ['classic', 'garden', 'tropics', 'beach'];
   const rewards = { copper: 3, 'orange-grove': 3, 'starry-sky': 10 };
   const params = new URLSearchParams(location.search);
