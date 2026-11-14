@@ -2,6 +2,11 @@
   const engine = GaribaldkaEngine;
   const i18n = DominoI18n;
   const get = id => document.getElementById(id);
+  const gameNames = {
+    pl: 'Garibaldka', en: 'Russian Bank', fr: 'Crapette', de: 'Streitpatience',
+    es: 'Crapé', it: 'Crapette', ar: 'طنج', uk: 'Гарібальдка',
+    'zh-Hans': '双人接龙', hi: 'दो खिलाड़ियों का सॉलिटेयर'
+  };
   const gameKey = 'garibaldka.game.v1';
   const gardenLabels = {
     pl: 'Ogród', en: 'Garden', es: 'Jardín',
@@ -728,7 +733,11 @@
     get('fullscreen').setAttribute('aria-pressed', full);
     get('fullscreen').setAttribute('aria-label', label(full ? 19 : 18));
     get('fullscreen').querySelector('.fullscreen-label').textContent = label(full ? 19 : 18);
-    get('help-button').textContent = get('help-title').textContent = prefs.language === 'pl' ? 'Jak grać?' : tr('How to play');
+    const gameName = gameNames[prefs.language] ?? gameNames.en;
+    document.title = get('game-name').textContent = gameName;
+    const helpLabel = prefs.language === 'pl' ? 'Jak grać?' : tr('How to play');
+    get('help-button').textContent = helpLabel;
+    get('help-title').textContent = helpLabel + ' · ' + gameName;
     board();
     personal(get('opponent'), 1);
     personal(get('supply'), 0, acknowledge);
