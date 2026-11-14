@@ -1,0 +1,126 @@
+body:has(#theme-gallery[open]) { overflow: hidden; }
+#theme-gallery {
+  box-sizing: border-box;
+  width: min(760px, calc(100% - 24px));
+  max-height: calc(100dvh - 24px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 16px;
+  background: var(--paper);
+  color: var(--ink);
+}
+.gallery-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.gallery-heading h2 { margin: 0; }
+.gallery-heading button { min-height: 44px; }
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: 14px;
+  padding: 0;
+  list-style: none;
+}
+.theme-grid button {
+  display: grid;
+  gap: 5px;
+  width: 100%;
+  height: 100%;
+  padding: 7px;
+  text-align: start;
+  background: var(--paper);
+  color: var(--ink);
+}
+.theme-grid button:disabled { opacity: 1; color: var(--muted); }
+.theme-grid button[aria-current] { border: 2px solid var(--accent); }
+.theme-thumbnail {
+  display: block;
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: 6px;
+  container-type: inline-size;
+  background: var(--wash);
+}
+.theme-thumbnail iframe {
+  position: absolute;
+  inset: 0;
+  width: 720px;
+  height: 450px;
+  border: 0;
+  pointer-events: none;
+  transform-origin: top left;
+  transform: scale(tan(atan2(100cqw, 720px)));
+}
+html[dir="rtl"] .theme-thumbnail iframe { inset: 0 auto auto 0; }
+.theme-thumbnail-page,
+.theme-thumbnail-page body {
+  overflow: hidden !important;
+  scrollbar-width: none;
+}
+.theme-thumbnail-page::-webkit-scrollbar,
+.theme-thumbnail-page body::-webkit-scrollbar { display: none; }
+.theme-thumbnail-page body > footer { display: none; }
+@media (max-width: 600px) {
+  .theme-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #theme-gallery {
+    inset: 0;
+    margin: 0;
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    border-radius: 0;
+    border: 0;
+  }
+}
+#theme-gallery .theme-grid button {
+  border-radius: 10px;
+  align-content: start;
+  border-color: transparent;
+}
+#theme-gallery .theme-grid button[aria-current] { border-color: var(--accent); }
+
+.theme-thumbnail-page .table-only .solitaire { overflow: hidden; }
+.theme-thumbnail-page :is(.game-toolbar, #rotate-hint, #challenge, .personal-actions) {
+  display: none;
+}
+.theme-thumbnail-page .table-only .game {
+  min-height: 100%;
+  align-items: center;
+}
+
+#theme-gallery .gallery-heading {
+  position: sticky;
+  inset-block-start: -16px;
+  z-index: 1;
+  margin-block-start: -16px;
+  padding-block: 12px 8px;
+  background: var(--paper);
+}
+
+/* The orange and blue-yellow headers are part of these two palettes. */
+.theme-thumbnail-page:is([data-theme="tangerine"]:not(.tangerine-grove-theme), [data-theme="ukraine"]) body > header {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  height: 58px;
+  margin: 0;
+  padding: 0 16px;
+  border-radius: 0;
+}
+.theme-thumbnail-page .header-controls { display: none; }
+.theme-thumbnail-page:is([data-theme="tangerine"]:not(.tangerine-grove-theme), [data-theme="ukraine"]) .table-only .solitaire {
+  inset-block-start: 58px;
+}
+
+@media (max-width: 600px) and (orientation: portrait) {
+  .theme-thumbnail:is([data-theme-preview="tangerine"], [data-theme-preview="ukraine"]) iframe {
+    width: 520px;
+    height: 325px;
+    transform: scale(tan(atan2(100cqw, 520px)));
+  }
+}

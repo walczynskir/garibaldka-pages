@@ -21,38 +21,124 @@
     pl: 'Plaża', en: 'Beach', es: 'Playa', de: 'Strand', 'zh-Hans': '海滩',
     hi: 'समुद्र तट', fr: 'Plage', ar: 'الشاطئ', it: 'Spiaggia', uk: 'Пляж'
   };
-  const groveLabels = {
-    pl: 'Pomarańczowy gaj', en: 'Orange Grove', es: 'Mandarinal', de: 'Mandarinenhain', 'zh-Hans': '橘子林',
-    hi: 'संतरों का बाग', fr: 'Verger de mandariniers', ar: 'بستان اليوسفي', it: 'Mandarineto', uk: 'Мандариновий гай'
-  };
-  const customThemeLabels = { garden: gardenLabels, classic: classicLabels, tropics: tropicsLabels, beach: beachLabels, 'tangerine-grove': groveLabels };
+  const customThemeLabels = { garden: gardenLabels, classic: classicLabels, tropics: tropicsLabels, beach: beachLabels };
   const prefsKey = 'garibaldka.preferences.v1';
   const winsKey = 'garibaldka.achievements.v1';
   const themes = { classic: 'Classic', garden: 'Garden', tropics: 'Tropics', beach: 'Beach', porcelain: 'Porcelain', ink: 'Ink & paper', sage: 'Sage', studio: 'Studio',
     forma: 'Forma', energy: 'Energy', tangerine: 'Tangerine', ukraine: 'Ukraine',
-    copper: 'Copper', 'night-sky': 'Night sky', 'tangerine-grove': 'Orange Grove' };
+    copper: 'Copper', 'night-sky': 'Navy', 'starry-sky': 'Night sky', 'orange-grove': 'Orange Grove' };
   const featuredThemes = ['classic', 'garden', 'tropics', 'beach'];
-  const themeGroupLabels = {
-    pl: ['Więcej motywów', 'Motywy za osiągnięcia'],
-    en: ['More themes', 'Achievement themes'],
-    es: ['Más temas', 'Temas por logros'],
-    de: ['Weitere Designs', 'Designs für Erfolge'],
-    'zh-Hans': ['更多主题', '成就主题'],
-    hi: ['और थीम', 'उपलब्धि थीम'],
-    fr: ['Autres thèmes', 'Thèmes de récompense'],
-    ar: ['المزيد من السمات', 'سمات الإنجازات'],
-    it: ['Altri temi', 'Temi per i traguardi'],
-    uk: ['Більше тем', 'Теми за досягнення'],
+  const rewards = { copper: 3, 'orange-grove': 3, 'starry-sky': 10 };
+  const params = new URLSearchParams(location.search);
+  const gallery = get('theme-gallery');
+  const galleryCopy = {
+    pl: ['Więcej motywów…', 'Za osiągnięcia', 'Zamknij', 'Pomarańczowy gaj', 'wygranych', 'Zablokowany', 'Aktywny'],
+    en: ['More themes…', 'Achievement themes', 'Close', 'Orange Grove', 'wins', 'Locked', 'Active'],
+    de: ['Weitere Designs…', 'Belohnungsdesigns', 'Schließen', 'Orangenhain', 'Siege', 'Gesperrt', 'Aktiv'],
+    es: ['Más temas…', 'Temas por logros', 'Cerrar', 'Naranjal', 'victorias', 'Bloqueado', 'Activo'],
+    fr: ['Plus de thèmes…', 'Thèmes de récompense', 'Fermer', 'Orangeraie', 'victoires', 'Verrouillé', 'Actif'],
+    it: ['Altri temi…', 'Temi premio', 'Chiudi', 'Aranceto', 'vittorie', 'Bloccato', 'Attivo'],
+    uk: ['Більше тем…', 'Теми за досягнення', 'Закрити', 'Апельсиновий гай', 'перемог', 'Заблоковано', 'Активна'],
+    ar: ['المزيد من السمات…', 'سمات الإنجازات', 'إغلاق', 'بستان البرتقال', 'انتصارات', 'مقفل', 'نشط'],
+    hi: ['और थीम…', 'उपलब्धि की थीम', 'बंद करें', 'संतरे का बाग', 'जीत', 'बंद', 'सक्रिय'],
+    'zh-Hans': ['更多主题…', '成就主题', '关闭', '橙园', '胜场', '未解锁', '当前']
   };
-  const rewards = { copper: 3, 'night-sky': 10, 'tangerine-grove': 3 };
+  const galleryLabels = () => galleryCopy[prefs.language] ?? galleryCopy.en;
+  function themeName(value) {
+    if (value === 'night-sky') {
+      const navy = { pl: 'Granat', de: 'Marineblau', es: 'Azul marino', fr: 'Bleu marine',
+        it: 'Blu navy', uk: 'Темно-синій', ar: 'أزرق داكن', hi: 'गहरा नीला', 'zh-Hans': '藏青色' };
+      return navy[prefs.language] ?? 'Navy';
+    }
+    if (value === 'orange-grove') return galleryLabels()[3];
+    const labels = customThemeLabels[value];
+    return labels ? labels[prefs.language] ?? labels.en : tr(themes[value]);
+  }
+  function applyTheme(value) {
+    prefs.theme = value;
+    prefs.contrast = false;
+    save();
+    render();
+  }
+  function openGallery() {
+    const [title, achievementsTitle, close, , winsLabel, lockedLabel, activeLabel] = galleryLabels();
+    get('gallery-title').textContent = title;
+    get('gallery-rewards-title').textContent = achievementsTitle;
+    get('gallery-close').textContent = close;
+    const ordinary = get('gallery-ordinary');
+    const achievement = get('gallery-rewards');
+    ordinary.replaceChildren();
+    achievement.replaceChildren();
+    const galleryThemes = Object.keys(themes)
+      .filter(value => !featuredThemes.includes(value))
+      .sort((left, right) => (rewards[left] ?? 0) - (rewards[right] ?? 0));
+    for (const value of galleryThemes) {
+      const item = document.createElement('li');
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.disabled = locked(value);
+      if (prefs.theme === value) button.setAttribute('aria-current', 'true');
+      const thumbnail = document.createElement('span');
+      thumbnail.className = 'theme-thumbnail';
+      thumbnail.dataset.themePreview = value;
+      thumbnail.setAttribute('aria-hidden', 'true');
+      const frame = document.createElement('iframe');
+      frame.src = '?' + new URLSearchParams({ miniatura: value, jezyk: prefs.language });
+      frame.title = themeName(value);
+      frame.setAttribute('scrolling', 'no');
+      frame.tabIndex = -1;
+      frame.loading = 'lazy';
+      frame.inert = true;
+      frame.setAttribute('sandbox', 'allow-scripts');
+      thumbnail.append(frame);
+      button.append(thumbnail);
+      const name = document.createElement('strong');
+      name.textContent = themeName(value);
+      button.append(name);
+      if (rewards[value] || prefs.theme === value) {
+        const details = document.createElement('small');
+        const threshold = rewards[value];
+        details.textContent = threshold
+          ? Math.min(wins, threshold) + '/' + threshold + ' ' + winsLabel
+          : activeLabel;
+        if (button.disabled) details.textContent += ' · ' + lockedLabel;
+        button.append(details);
+      }
+      button.onclick = () => {
+        gallery.close();
+        applyTheme(value);
+      };
+      item.append(button);
+      (rewards[value] ? achievement : ordinary).append(item);
+    }
+    gallery.showModal();
+    scheduleComputer();
+  }
+  const requestedThumbnail = params.get('miniatura');
+  const thumbnailTheme = Object.hasOwn(themes, requestedThumbnail) ? requestedThumbnail : null;
   function read(key) {
     try { return JSON.parse(localStorage.getItem(key)); } catch { return null; }
   }
   const prefs = { language: 'pl', theme: 'classic', contrast: false, large: false,
-    strict: true, reservePriority: false, stopWindow: "unlimited", difficulty: "medium", falseStopPenalty: false, kingsOnly: true, showUndo: false, showCounts: false, showMoveLog: false, showTargets: false, lockDrawn: true, distinguishDecks: true, animationSpeed: "normal", ...read(prefsKey) };
-  let wins = read(winsKey) ?? 0;
-  const savedGame = read(gameKey);
-  let state = savedGame?.state ?? savedGame ?? engine.deal(prefs);
+    strict: true, reservePriority: false, stopWindow: "unlimited", difficulty: "medium", falseStopPenalty: false, kingsOnly: true, showUndo: false, showCounts: false, showMoveLog: false, showTargets: false, lockDrawn: true, distinguishDecks: true, animationSpeed: "normal", ...(thumbnailTheme ? null : read(prefsKey)) };
+  if (thumbnailTheme) {
+    document.documentElement.classList.add('theme-thumbnail-page');
+    document.body.classList.add('table-only');
+    prefs.theme = thumbnailTheme;
+    prefs.language = i18n.languages.includes(params.get('jezyk')) ? params.get('jezyk') : 'pl';
+  } else if (!prefs.themeGallery) {
+    if (prefs.theme === 'tangerine-grove') prefs.theme = 'orange-grove';
+    if (prefs.theme === 'night-sky') prefs.theme = 'starry-sky';
+    prefs.themeGallery = true;
+  }
+  let wins = thumbnailTheme ? 0 : read(winsKey) ?? 0;
+  const savedGame = thumbnailTheme ? null : read(gameKey);
+  let previewSeed = 731;
+  const previewRandom = () => {
+    previewSeed = (Math.imul(previewSeed, 1664525) + 1013904223) >>> 0;
+    return previewSeed / 4294967296;
+  };
+  let state = savedGame?.state ?? savedGame ?? engine.deal(prefs, thumbnailTheme ? previewRandom : Math.random);
   const history = savedGame?.history ?? [];
   const future = savedGame?.future ?? [];
   let lastWinner = savedGame?.lastWinner ?? null;
@@ -86,6 +172,7 @@
   const locked = theme => wins < (rewards[theme] ?? 0);
 
   function save() {
+    if (thumbnailTheme) return;
     try {
       localStorage.setItem(gameKey, JSON.stringify({ state, history, future, rewarded, lastWinner }));
       localStorage.setItem(prefsKey, JSON.stringify(prefs));
@@ -232,7 +319,7 @@
   function scheduleComputer() {
     clearTimeout(computerTimer);
     stopReady = false;
-    if (finished() || waitingForStopAcknowledgment() || get('confirm-game').open) return;
+    if (thumbnailTheme || gallery.open || finished() || waitingForStopAcknowledgment() || get('confirm-game').open) return;
     if (state.pending) {
       if (state.turn === human) {
         computerTimer = setTimeout(() => {
@@ -600,8 +687,9 @@
     if (notice.textContent !== stopText) notice.textContent = stopText;
     const oldFocus = document.activeElement?.dataset.focus;
     const garden = prefs.theme === 'garden' && !prefs.contrast;
-    const grove = prefs.theme === 'tangerine-grove' && !prefs.contrast;
-    document.documentElement.dataset.theme = prefs.contrast ? 'contrast' : garden ? 'sage' : grove ? 'tangerine' : prefs.theme;
+    const grove = prefs.theme === 'orange-grove' && !prefs.contrast;
+    document.documentElement.dataset.theme = prefs.contrast ? 'contrast' : garden ? 'sage' : grove ? 'tangerine' : prefs.theme === 'starry-sky' ? 'night-sky' : prefs.theme;
+    document.documentElement.dataset.scenicReward = prefs.contrast ? '' : prefs.theme;
     document.documentElement.classList.toggle('garden-theme', garden);
     document.documentElement.classList.toggle('tangerine-grove-theme', grove);
     document.body.classList.toggle('large', prefs.large);
@@ -611,12 +699,12 @@
     get('large').setAttribute('aria-label', tr('Larger text'));
     get('language-label').textContent = tr('Language');
     get('theme-label').textContent = tr('Appearance');
-    const [moreLabel, rewardsLabel] = themeGroupLabels[prefs.language] ?? themeGroupLabels.en;
-    moreThemes.label = moreLabel;
-    rewardThemes.label = rewardsLabel;
-    for (const option of themeSelect.options) {
-      option.disabled = locked(option.value);
-      option.textContent = (customThemeLabels[option.value]?.[prefs.language] ?? tr(themes[option.value])) + (option.disabled ? ' · ' + wins + '/' + rewards[option.value] : '');
+    const visibleThemes = featuredThemes.includes(prefs.theme) ? featuredThemes : [...featuredThemes, prefs.theme];
+    const menuThemes = [...visibleThemes.map(value => new Option(themeName(value), value)),
+      new Option(galleryLabels()[0], 'more')];
+    if (themeSelect.options.length !== menuThemes.length || menuThemes.some((option, index) =>
+      option.value !== themeSelect.options[index].value || option.text !== themeSelect.options[index].text)) {
+      themeSelect.replaceChildren(...menuThemes);
     }
     themeSelect.value = prefs.theme;
     for (const [id, index] of Object.entries({'kingsOnly-label':13,'kingsOnly-note':14,
@@ -669,26 +757,30 @@
 
   i18n.addLanguages(get('language'));
   const themeSelect = get('theme');
-  const moreThemes = document.createElement('optgroup');
-  const rewardThemes = document.createElement('optgroup');
-  for (const value of Object.keys(themes)) {
-    const option = document.createElement('option');
-    option.value = value;
-    option.translate = false;
-    const group = featuredThemes.includes(value) ? themeSelect
-      : Object.hasOwn(rewards, value) ? rewardThemes : moreThemes;
-    group.append(option);
-  }
-  themeSelect.append(moreThemes, rewardThemes);
-  if (locked(prefs.theme) || !Object.hasOwn(themes, prefs.theme)) prefs.theme = 'classic';
-  for (const name of ['language','theme','large','strict','kingsOnly','showUndo','showCounts','showMoveLog','animationSpeed','showTargets','lockDrawn','distinguishDecks','stopWindow','difficulty','falseStopPenalty','reservePriority']) {
+  themeSelect.translate = false;
+  if (!thumbnailTheme && (locked(prefs.theme) || !Object.hasOwn(themes, prefs.theme))) prefs.theme = 'classic';
+  themeSelect.onchange = () => {
+    const value = themeSelect.value;
+    if (value === 'more') {
+      themeSelect.value = prefs.theme;
+      openGallery();
+    } else if (Object.hasOwn(themes, value) && !locked(value)) {
+      applyTheme(value);
+    }
+  };
+  gallery.addEventListener('close', () => {
+    get('gallery-ordinary').replaceChildren();
+    get('gallery-rewards').replaceChildren();
+    themeSelect.focus();
+    scheduleComputer();
+  });
+  for (const name of ['language','large','strict','kingsOnly','showUndo','showCounts','showMoveLog','animationSpeed','showTargets','lockDrawn','distinguishDecks','stopWindow','difficulty','falseStopPenalty','reservePriority']) {
     const node = get(name);
     const checkbox = node.type === 'checkbox';
     if (checkbox) node.checked = prefs[name];
     else node.value = prefs[name];
     node.onchange = () => {
       prefs[name] = checkbox ? node.checked : node.value;
-      if (name === 'theme') prefs.contrast = false;
       if (name === 'animationSpeed' || name === 'stopWindow') scheduleComputer();
       if (name === 'strict' || name === 'reservePriority') {
         update(applyStopPreference);
@@ -804,5 +896,6 @@
   });
   restoreFoundationOrder();
   engine.setKingsOnly(state, prefs.kingsOnly);
-  update(applyStopPreference);
+  if (thumbnailTheme) render();
+  else update(applyStopPreference);
 })();
