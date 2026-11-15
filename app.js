@@ -7,6 +7,7 @@
     es: 'Crapé', it: 'Crapette', ar: 'طنج', uk: 'Гарібальдка',
     'zh-Hans': '双人接龙', hi: 'दो खिलाड़ियों का सॉलिटेयर'
   };
+  const resultsKey = 'garibaldka.results.v1';
   const gameKey = 'garibaldka.game.v1';
   const gardenLabels = {
     pl: 'Ogród', en: 'Garden', es: 'Jardín',
@@ -80,7 +81,6 @@
     ordinary.replaceChildren();
     achievement.replaceChildren();
     const galleryThemes = Object.keys(themes)
-      .filter(value => !featuredThemes.includes(value))
       .sort((left, right) => (rewards[left] ?? 0) - (rewards[right] ?? 0));
     for (const value of galleryThemes) {
       const item = document.createElement('li');
@@ -152,6 +152,8 @@
   const history = savedGame?.history ?? [];
   const future = savedGame?.future ?? [];
   let lastWinner = savedGame?.lastWinner ?? null;
+  const results = thumbnailTheme ? {} : read(resultsKey) ?? {};
+  let gameId = savedGame?.gameId ?? (thumbnailTheme ? null : crypto.randomUUID());
   let rewarded = savedGame?.rewarded ?? (engine.resultWinner(state) === 0);
   let selected;
   let lastCardClick;
@@ -184,16 +186,26 @@
   function save() {
     if (thumbnailTheme) return;
     try {
-      localStorage.setItem(gameKey, JSON.stringify({ state, history, future, rewarded, lastWinner }));
+      localStorage.setItem(gameKey, JSON.stringify({ state, history, future, rewarded, lastWinner, gameId }));
       localStorage.setItem(prefsKey, JSON.stringify(prefs));
       localStorage.setItem(winsKey, JSON.stringify(wins));
       saved = true;
     } catch { saved = false; }
   }
 
+  function recordResult(outcome) {
+    if (thumbnailTheme) return;
+    Object.assign(results, read(resultsKey));
+    if (Object.hasOwn(results, gameId)) return;
+    results[gameId] = { outcome, endedAt: Date.now() };
+    try { localStorage.setItem(resultsKey, JSON.stringify(results)); }
+    catch { saved = false; }
+  }
+
   function update(run, { computerMove, selectDrawn = false, record = false } = {}) {
     stopReady = false;
     lastCardClick = undefined;
+    const previouslyFinished = finished();
     const oldWinner = engine.resultWinner(state);
     const wasWaitingForStop = waitingForStopAcknowledgment();
     const previous = record ? structuredClone(state) : null;
@@ -212,6 +224,9 @@
     if (!rewarded && oldWinner === null && winner === human) {
       wins++;
       rewarded = true;
+    }
+    if (!previouslyFinished && finished() && !state.abandoned) {
+      recordResult(winner === human ? 'win' : winner === computer ? 'loss' : 'draw');
     }
     save();
     render();
@@ -329,7 +344,7 @@
   function scheduleComputer() {
     clearTimeout(computerTimer);
     stopReady = false;
-    if (thumbnailTheme || gallery.open || finished() || waitingForStopAcknowledgment() || get('confirm-game').open) return;
+    if (thumbnailTheme || gallery.open || get('statistics').open || finished() || waitingForStopAcknowledgment() || get('confirm-game').open) return;
     if (state.pending) {
       if (state.turn === human) {
         computerTimer = setTimeout(() => {
@@ -651,6 +666,10 @@
     return reason + ' ' + result + ' · ' + remainingCounts();
   }
   function render() {
+    if (!thumbnailTheme) {
+      const next = Object.keys(rewards).filter(locked).sort((a, b) => rewards[a] - rewards[b])[0];
+      GaribaldkaProgress.paintBar(prefs.language, wins, next && { name: themeName(next), threshold: rewards[next] });
+    }
     const groups = settingsGroupStrings[prefs.language] ?? settingsGroupStrings.en;
     for (const [group, title] of Object.entries(groups)) get('settings-group-' + group).textContent = title;
     computerFlight?.cancel();
@@ -828,7 +847,18 @@
   };
   get('undo').onclick = () => stepHistory(history, future);
   get('redo').onclick = () => stepHistory(future, history);
+  const statistics = get('statistics');
+  get('my-progress').onclick = () => {
+    Object.assign(results, read(resultsKey));
+    GaribaldkaProgress.paintStats(prefs.language, Object.values(results).sort((a, b) => a.endedAt - b.endedAt));
+    statistics.showModal();
+    scheduleComputer();
+  };
+  statistics.addEventListener('close', scheduleComputer);
+
   function startNewGame() {
+    if (!finished()) recordResult('abandoned');
+    gameId = crypto.randomUUID();
     GameVictory(false);
     history.length = 0;
     future.length = 0;

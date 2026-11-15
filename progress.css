@@ -1,0 +1,50 @@
+/* Compact progress entry based on the Sudoku Trainer launch button. */
+#my-progress {
+  display: flex;
+  align-items: center;
+  gap: .45em;
+  inline-size: 100%;
+  min-block-size: 44px;
+  margin-block-end: 8px;
+  padding: .35em .7em;
+  text-align: start;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--muted);
+  border-radius: var(--radius);
+}
+#my-progress:hover { background: var(--wash); }
+#progress-name { flex: 1; min-width: 0; }
+.progress-count { white-space: nowrap; }
+.progress-chevron { margin-inline-start: .2em; }
+[dir="rtl"] .progress-chevron { transform: scaleX(-1); }
+.table-only #my-progress { display: none; }
+#statistics { max-height: min(85vh, calc(100dvh - 24px)); }
+#statistics .dialog-heading { align-items: center; }
+#statistics-title { margin: 0; }
+#statistics-close { font-size: 1em; min-height: 44px; }
+#statistics-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+#statistics-metrics div {
+  padding: 8px;
+  background: var(--wash);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+#statistics-metrics dd { margin: 0; font-size: 1.3em; font-weight: 700; }
+#statistics-recent { padding: 0; list-style: none; }
+#statistics-recent li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .2em .8em; }
+@media (max-width: 600px) {
+  body:not(.large) #my-progress { font-size: .875rem; }
+  body:not(.large) #progress-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}
+@media (max-width: 360px) {
+  header .brand { font-size: 1rem; min-width: 0; }
+  header .brand .brand-logo { width: 26px; height: 26px; }
+  header .brand .brand-name { overflow-wrap: anywhere; }
+  .game-tools { flex-wrap: wrap; }
+  .game-toolbar .game-tools button { padding-inline: 8px; }
+}
