@@ -46,5 +46,5 @@
   header .brand .brand-logo { width: 26px; height: 26px; }
   header .brand .brand-name { overflow-wrap: anywhere; }
   .game-tools { flex-wrap: wrap; }
-  .game-toolbar .game-tools button { padding-inline: 8px; }
+  .game-toolbar .game-tools button:not(.shared-settings-button) { padding-inline: 8px; }
 }
