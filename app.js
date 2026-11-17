@@ -751,8 +751,8 @@
     }
     themeSelect.value = prefs.theme;
     for (const [id, index] of Object.entries({'kingsOnly-label':13,'kingsOnly-note':14,
-      'strict-note':15,'rules':17})) get(id).textContent = label(index);
-    get('rules').textContent += ' ' + (drawnFirstStrings[prefs.language] ?? drawnFirstStrings.en);
+      'strict-note':15})) get(id).textContent = label(index);
+    GaribaldkaHelp.render(prefs.language, get('help-content'));
     get('strict-label').textContent = 'Stop!';
     const [priorityLabel, priorityNote] = reservePriorityStrings[prefs.language] ?? reservePriorityStrings.en;
     get('reservePriority-label').textContent = priorityLabel;
@@ -760,7 +760,7 @@
     get('reservePriority').disabled = !prefs.strict;
     get('strict-note').textContent += ' ' + immediateRuleLabels[prefs.language];
     get('kingsOnly-note').textContent += ' ' + immediateRuleLabels[prefs.language];
-    get('sequence-help').textContent = [state.strict ? label(15) : '', state.kingsOnly ? label(14) : ''].filter(Boolean).join(' ');
+
     const full = document.body.classList.contains('table-only');
     get('rotate-hint').textContent = rotateHintStrings[prefs.language] ?? rotateHintStrings.en;
     get('fullscreen').setAttribute('aria-pressed', full);

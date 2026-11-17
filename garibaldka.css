@@ -178,3 +178,15 @@ button.playing-card.stop-required-card {
   .table-only #supply .personal-actions button { padding-inline: 4px; }
   .table-only #move-log { grid-column: 1 / -1; margin-block-start: 0; }
 }
+
+#help { width: min(680px, calc(100% - 24px)); }
+#help .dialog-heading {
+  position: sticky;
+  top: -25px;
+  background: var(--paper);
+  padding-block: 8px;
+  z-index: 1;
+}
+#help-content h3 { font-size: 1.05em; margin-block: 1em .3em; }
+#help-content p { margin-block: 0 .8em; }
+#help-content { overflow-wrap: anywhere; }
