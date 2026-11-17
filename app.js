@@ -153,6 +153,11 @@
   const future = savedGame?.future ?? [];
   let lastWinner = savedGame?.lastWinner ?? null;
   const results = thumbnailTheme ? {} : read(resultsKey) ?? {};
+  let started = savedGame?.started ?? Boolean(savedGame && (
+    history.length || future.length || state.moveLog?.length || state.pending ||
+    state.goals.some(pile => pile.length) || state.players.some(player =>
+      player.drawn.length || player.waste.length || player.stock.length !== 35 || player.reserve.length !== 13)));
+  let pendingResult = savedGame?.pendingResult ?? null;
   let gameId = savedGame?.gameId ?? (thumbnailTheme ? null : crypto.randomUUID());
   let rewarded = savedGame?.rewarded ?? (engine.resultWinner(state) === 0);
   let selected;
@@ -186,20 +191,23 @@
   function save() {
     if (thumbnailTheme) return;
     try {
-      localStorage.setItem(gameKey, JSON.stringify({ state, history, future, rewarded, lastWinner, gameId }));
+      localStorage.setItem(gameKey, JSON.stringify({ state, history, future, rewarded, lastWinner, gameId, started, pendingResult }));
       localStorage.setItem(prefsKey, JSON.stringify(prefs));
       localStorage.setItem(winsKey, JSON.stringify(wins));
       saved = true;
     } catch { saved = false; }
   }
 
-  function recordResult(outcome) {
+  function recordResult(outcome, reason = 'natural') {
     if (thumbnailTheme) return;
     Object.assign(results, read(resultsKey));
-    if (Object.hasOwn(results, gameId)) return;
-    results[gameId] = { outcome, endedAt: Date.now() };
-    try { localStorage.setItem(resultsKey, JSON.stringify(results)); }
-    catch { saved = false; }
+    if (Object.hasOwn(results, gameId)) return true;
+    const entry = { outcome, reason, endedAt: Date.now() };
+    try {
+      localStorage.setItem(resultsKey, JSON.stringify({ ...results, [gameId]: entry }));
+      results[gameId] = entry;
+      return true;
+    } catch { saved = false; return false; }
   }
 
   function update(run, { computerMove, selectDrawn = false, record = false } = {}) {
@@ -226,9 +234,13 @@
       rewarded = true;
     }
     if (!previouslyFinished && finished() && !state.abandoned) {
-      recordResult(winner === human ? 'win' : winner === computer ? 'loss' : 'draw');
+      pendingResult = winner === human ? 'win' : winner === computer ? 'loss' : 'draw';
     }
     save();
+    if (saved && pendingResult && recordResult(pendingResult)) {
+      pendingResult = null;
+      save();
+    }
     render();
     if (oldWinner === null && winner === human) GameVictory(true, winnerLabel());
     if (computerMove) showComputerMove(computerMove);
@@ -241,7 +253,9 @@
     const card = action.type === 'move' ? pileCards(action.from).at(-1)
       : state.players[player].drawn.at(-1);
     const result = run();
+    if (result === 'challenge') started = true;
     if (result === 'played' || result === true) {
+      started = true;
       const entries = state.moveLog ??= [];
       if (stopBy === human) state.stopBy = stopBy;
       entries.push({ ...action, player, stopBy, falseStop, card: action.type === 'draw'
@@ -857,7 +871,16 @@
   statistics.addEventListener('close', scheduleComputer);
 
   function startNewGame() {
-    if (!finished()) recordResult('abandoned');
+    if (pendingResult && !recordResult(pendingResult)) {
+      render();
+      return;
+    }
+    if (started && !finished() && !recordResult('loss', 'replaced')) {
+      render();
+      return;
+    }
+    started = false;
+    pendingResult = null;
     gameId = crypto.randomUUID();
     GameVictory(false);
     history.length = 0;
@@ -867,13 +890,25 @@
     update(() => { state = engine.deal({ ...prefs, lastWinner }); });
   }
 
+  const replacementWarning = {
+    pl: 'Rozpocząć nową partię? Obecna partia zostanie zaliczona jako przegrana.',
+    en: 'Start a new game? The current game will count as a loss.',
+    es: '¿Empezar una partida nueva? La partida actual contará como derrota.',
+    de: 'Ein neues Spiel beginnen? Das laufende Spiel zählt als Niederlage.',
+    'zh-Hans': '开始新游戏？当前对局将计为失败。',
+    hi: 'नया खेल शुरू करें? मौजूदा खेल हार के रूप में गिना जाएगा।',
+    fr: 'Commencer une nouvelle partie ? La partie en cours comptera comme une défaite.',
+    ar: 'هل تريد بدء مباراة جديدة؟ ستُحتسب المباراة الحالية خسارة.',
+    it: 'Iniziare una nuova partita? La partita attuale conterà come sconfitta.',
+    uk: 'Почати нову партію? Поточну партію буде зараховано як поразку.'
+  };
   const confirmation = get('confirm-game');
   function confirmGameAction(action) {
     const labels = endingLabels();
     const settlement = action === 'settle' ? engine.settlementAvailability(state) : null;
     const texts = settlementLabels();
     get('confirm-game-title').textContent = settlement ? texts[settlement === 'computer' ? 1 : 0] : tr('New game');
-    get('confirm-game-message').textContent = settlement ? texts[2] + ' · ' + remainingCounts() : tr('Start a new game?');
+    get('confirm-game-message').textContent = settlement ? texts[2] + ' · ' + remainingCounts() : (replacementWarning[prefs.language] ?? replacementWarning.en);
     get('confirm-game-cancel').textContent = labels[2];
     get('confirm-game-accept').textContent = settlement ? texts[3] : tr('New game');
     confirmation.dataset.action = action;
@@ -883,15 +918,18 @@
   }
 
   get('propose-settlement').onclick = () => confirmGameAction('settle');
-  get('new-game').onclick = () => finished() ? startNewGame() : confirmGameAction('new');
+  get('new-game').onclick = () => finished() || !started ? startNewGame() : confirmGameAction('new');
   confirmation.onclose = () => {
+    const action = confirmation.dataset.action;
+    delete confirmation.dataset.action;
+    if (!action) return;
     if (confirmation.returnValue !== 'accept') {
-      if (confirmation.dataset.action === 'settle' && engine.settlementAvailability(state) === 'computer') {
+      if (action === 'settle' && engine.settlementAvailability(state) === 'computer') {
         update(() => engine.declineSettlement(state));
       } else {
         scheduleComputer();
       }
-    } else if (confirmation.dataset.action === 'settle') {
+    } else if (action === 'settle') {
       update(() => engine.proposeSettlement(state), { record: true });
       get('status').focus({ preventScroll: true });
     } else {
