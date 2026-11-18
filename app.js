@@ -358,7 +358,7 @@
   function scheduleComputer() {
     clearTimeout(computerTimer);
     stopReady = false;
-    if (thumbnailTheme || gallery.open || get('statistics').open || finished() || waitingForStopAcknowledgment() || get('confirm-game').open) return;
+    if (thumbnailTheme || gallery.open || get('settings').open || get('statistics').open || finished() || waitingForStopAcknowledgment() || get('confirm-game').open) return;
     if (state.pending) {
       if (state.turn === human) {
         computerTimer = setTimeout(() => {
@@ -708,6 +708,29 @@
     if (required() > available) toolbar.classList.add('toolbar-overflow');
   }
 
+  function renderSettings() {
+    const copy = settingsDialogStrings[prefs.language] ?? settingsDialogStrings.en;
+    get('settings-title').textContent = tr('Settings');
+    get('settings-dismiss').setAttribute('aria-label', tr('Close'));
+    get('settings-autosave').textContent = copy.autosave;
+    const error = get('settings-save-error');
+    if (error.hidden && !saved && get('settings').open) {
+      get('settings').querySelector('.settings-body').scrollTop = 0;
+    }
+    error.hidden = saved;
+    get('settings-save-error-text').textContent = copy.error;
+    get('settings-save-retry').textContent = copy.retry;
+    for (const timing of get('settings').querySelectorAll('[data-setting-applies]')) {
+      timing.textContent = copy.now;
+    }
+    for (const button of get('settings').querySelectorAll('.setting-info')) {
+      const label = get(button.getAttribute('aria-labelledby'));
+      button.removeAttribute('aria-labelledby');
+      button.dataset.optionLabel ??= label?.id;
+      button.setAttribute('aria-label', copy.about + get(button.dataset.optionLabel).textContent);
+    }
+  }
+
   function render() {
     if (!thumbnailTheme) {
       const next = Object.keys(rewards).filter(locked).sort((a, b) => rewards[a] - rewards[b])[0];
@@ -826,6 +849,7 @@
     get('save-note').textContent = label(saved ? 20 : 21);
     i18n.apply(document.body, prefs.language);
     fitToolbar();
+    renderSettings();
     if (oldFocus) {
       const nextId = oldFocus === 'draw' + human && selected?.group === 'drawn' ? key(selected) : oldFocus;
       const next = cardAt(nextId);
@@ -969,7 +993,20 @@
     }
   };
   get('contrast').onclick = () => { prefs.contrast = !prefs.contrast; save(); render(); };
-  for (const dialog of ['help','settings']) get(dialog + '-button').onclick = () => get(dialog).showModal();
+  get('help-button').onclick = () => get('help').showModal();
+  get('settings-button').onclick = () => {
+    renderSettings();
+    get('settings').showModal();
+    scheduleComputer();
+  };
+  get('settings').addEventListener('close', () => {
+    get('settings-button').focus({ preventScroll: true });
+    scheduleComputer();
+  });
+  get('settings-save-retry').onclick = () => {
+    save();
+    render();
+  };
   for (const info of document.querySelectorAll('.setting-info')) {
     info.onclick = () => {
       const note = get(info.getAttribute('aria-controls'));

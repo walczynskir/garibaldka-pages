@@ -105,3 +105,9 @@ header #contrast { min-height: 44px; }
 @media (max-width: 360px) {
   .table-only .solitaire .game-toolbar { padding-inline: 8px; }
 }
+
+/* Preserve board height in low landscape fullscreen. */
+
+@media (orientation: landscape) and (max-height: 520px) {
+  .table-only .solitaire .game-toolbar { padding-block: 0; }
+}

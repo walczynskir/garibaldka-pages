@@ -9,7 +9,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=1.0.1">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="shared-palettes.css?v=shared-palettes-2">
-<link rel="stylesheet" href="themes.css?v=0.10.1">
+<link rel="stylesheet" href="themes.css?v=1.2.0">
 <link rel="stylesheet" href="shared-game.css?v=0.10.1">
 <link rel="stylesheet" href="pasjans.css?v=0.3.5"><link rel="stylesheet" href="garibaldka.css?v=0.11.0">
 <link rel="stylesheet" href="card-themes.css?v=0.9.1">
@@ -27,7 +27,9 @@ if (!new URLSearchParams(location.search).has('miniatura')) {
   document.head.append(analytics);
 }
 </script>
-<link rel="stylesheet" href="toolbar.css?v=1.1.0">
+<link rel="stylesheet" href="toolbar.css?v=1.2.0">
+<link rel="stylesheet" href="shared-settings.css?v=1.2.0">
+<link rel="stylesheet" href="settings.css?v=1.2.0">
 </head>
 <body>
 <header><a class="brand" href="./"><img class="brand-logo" src="logo.svg?v=1.0.1" alt=""><span id="game-name" class="brand-name" dir="auto" translate="no">Garibaldka</span></a><div class="header-controls"><div class="accessibility-controls"><button id="contrast" translate="no" aria-pressed="false"></button><label class="text-size-control"><input type="checkbox" id="large"><span id="large-label"></span></label></div><div class="preferences"><label><span id="language-label"></span><select id="language"><option value="pl">Polski</option><option value="en">English</option></select></label><label><span id="theme-label"></span><select id="theme"></select></label></div></div></header>
@@ -70,7 +72,7 @@ if (!new URLSearchParams(location.search).has('miniatura')) {
     </details>
   </section>
 </main>
-<footer><section class="support-causes" aria-labelledby="support-title"><h2 id="support-title">Dobra gra może zrobić coś dobrego.</h2><p translate="no">Jeśli chcesz, wesprzyj pomoc osobom dotkniętym wojną w Ukrainie lub psom i kotom w Gdyni.</p><div class="support-links"><a href="https://www.pah.org.pl/gdzie-dzialamy/ukraina/" target="_blank" rel="noopener noreferrer"><b aria-hidden="true" translate="no">🇺🇦</b> <span>Pomoc Ukrainie · PAH</span> <b aria-hidden="true" translate="no">↗</b></a><a href="https://ciapkowo.pl/" target="_blank" rel="noopener noreferrer"><b aria-hidden="true" translate="no">🐾</b> <span>Pomoc psom i kotom · Ciapkowo w Gdyni</span> <b aria-hidden="true" translate="no">↗</b></a></div><p class="support-note">Linki prowadzą do oficjalnych stron organizacji. Nie zbieramy wpłat ani nie pobieramy prowizji.</p></section><a id="credits-link" href="credits.html">Autorzy i licencje</a><span id="footer-version" translate="no">v1.1.0</span><span id="save-note" translate="no"></span>
+<footer><section class="support-causes" aria-labelledby="support-title"><h2 id="support-title">Dobra gra może zrobić coś dobrego.</h2><p translate="no">Jeśli chcesz, wesprzyj pomoc osobom dotkniętym wojną w Ukrainie lub psom i kotom w Gdyni.</p><div class="support-links"><a href="https://www.pah.org.pl/gdzie-dzialamy/ukraina/" target="_blank" rel="noopener noreferrer"><b aria-hidden="true" translate="no">🇺🇦</b> <span>Pomoc Ukrainie · PAH</span> <b aria-hidden="true" translate="no">↗</b></a><a href="https://ciapkowo.pl/" target="_blank" rel="noopener noreferrer"><b aria-hidden="true" translate="no">🐾</b> <span>Pomoc psom i kotom · Ciapkowo w Gdyni</span> <b aria-hidden="true" translate="no">↗</b></a></div><p class="support-note">Linki prowadzą do oficjalnych stron organizacji. Nie zbieramy wpłat ani nie pobieramy prowizji.</p></section><a id="credits-link" href="credits.html">Autorzy i licencje</a><span id="footer-version" translate="no">v1.2.0</span><span id="save-note" translate="no"></span>
 
 <nav class="games-chest-menu" translate="no"><div class="recent-games" hidden><span></span><div class="recent-games-icons"></div></div><a class="all-games" href="https://games-chest.com/">Wszystkie gry</a></nav>
 </footer>
@@ -103,14 +105,22 @@ if (!new URLSearchParams(location.search).has('miniatura')) {
     </div>
   </form>
 </dialog>
-<dialog id="settings" aria-labelledby="settings-title">
-  <form method="dialog">
-    <div class="dialog-heading"><h2 id="settings-title">Settings</h2><button aria-label="Close">×</button></div>
-    <fieldset>
+<dialog id="settings" class="shared-settings" aria-labelledby="settings-title" aria-describedby="settings-autosave" translate="no">
+  <form method="dialog" class="settings-shell">
+    <header class="settings-header">
+      <div class="settings-heading"><h2 id="settings-title" dir="auto"></h2><button id="settings-dismiss" type="submit" value="close" autofocus>×</button></div>
+      <p id="settings-autosave" class="settings-summary"></p>
+    </header>
+    <div class="settings-body">
+      <div id="settings-save-error" class="settings-save-error" role="alert" hidden>
+        <p id="settings-save-error-text"></p>
+        <button id="settings-save-retry" type="button"></button>
+      </div>
+    <fieldset class="settings-section">
       <legend id="settings-group-play" translate="no"></legend>
       <div class="setting-item">
         <div class="setting-row">
-          <label><span id="difficulty-label" translate="no"></span>
+          <label class="setting-stacked"><span class="setting-caption"><span id="difficulty-label" translate="no"></span><small class="setting-timing" data-setting-applies="now"></small></span>
             <select id="difficulty" translate="no">
               <option value="easy"></option><option value="medium"></option>
               <option value="high"></option><option value="expert"></option>
@@ -122,31 +132,31 @@ if (!new URLSearchParams(location.search).has('miniatura')) {
       </div>
       <div class="setting-item">
         <div class="setting-row">
-          <label><input type="checkbox" id="kingsOnly"> <span id="kingsOnly-label" translate="no"></span></label>
+          <label><input type="checkbox" id="kingsOnly"> <span class="setting-caption"><span id="kingsOnly-label" translate="no"></span><small class="setting-timing" data-setting-applies="now"></small></span></label>
           <button class="setting-info" type="button" aria-expanded="false" aria-controls="kingsOnly-note" aria-labelledby="kingsOnly-label">ⓘ</button>
         </div>
         <p class="setting-description small muted" id="kingsOnly-note" translate="no" hidden></p>
       </div>
     </fieldset>
-    <fieldset>
+    <fieldset class="settings-section">
       <legend id="settings-group-stop" translate="no"></legend>
       <div class="setting-item">
         <div class="setting-row">
-          <label><input type="checkbox" id="strict"> <span id="strict-label" translate="no"></span></label>
+          <label><input type="checkbox" id="strict"> <span class="setting-caption"><span id="strict-label" translate="no"></span><small class="setting-timing" data-setting-applies="now"></small></span></label>
           <button class="setting-info" type="button" aria-expanded="false" aria-controls="strict-note" aria-labelledby="strict-label">ⓘ</button>
         </div>
         <p class="setting-description small muted" id="strict-note" translate="no" hidden></p>
       </div>
       <div class="setting-item">
         <div class="setting-row">
-          <label><input type="checkbox" id="reservePriority"> <span id="reservePriority-label" translate="no"></span></label>
+          <label><input type="checkbox" id="reservePriority"> <span class="setting-caption"><span id="reservePriority-label" translate="no"></span><small class="setting-timing" data-setting-applies="now"></small></span></label>
           <button class="setting-info" type="button" aria-expanded="false" aria-controls="reservePriority-note" aria-labelledby="reservePriority-label">ⓘ</button>
         </div>
         <p class="setting-description small muted" id="reservePriority-note" translate="no" hidden></p>
       </div>
       <div class="setting-item">
         <div class="setting-row">
-          <label><span id="stopWindow-label" translate="no"></span>
+          <label class="setting-stacked"><span class="setting-caption"><span id="stopWindow-label" translate="no"></span><small class="setting-timing" data-setting-applies="now"></small></span>
             <select id="stopWindow" translate="no">
               <option id="stopWindow-unlimited" value="unlimited" selected>Bez limitu</option>
             <option value="2000">2 s</option>
@@ -160,41 +170,41 @@ if (!new URLSearchParams(location.search).has('miniatura')) {
       </div>
       <div class="setting-item">
         <div class="setting-row">
-          <label><input type="checkbox" id="falseStopPenalty"> <span id="falseStopPenalty-label" translate="no"></span></label>
+          <label><input type="checkbox" id="falseStopPenalty"> <span class="setting-caption"><span id="falseStopPenalty-label" translate="no"></span><small class="setting-timing" data-setting-applies="now"></small></span></label>
           <button class="setting-info" type="button" aria-expanded="false" aria-controls="falseStopPenalty-note" aria-labelledby="falseStopPenalty-label">ⓘ</button>
         </div>
         <p class="setting-description small muted" id="falseStopPenalty-note" translate="no" hidden></p>
       </div>
     </fieldset>
-    <fieldset>
+    <fieldset class="settings-section">
       <legend id="settings-group-controls" translate="no"></legend>
       <div class="setting-item">
         <div class="setting-row">
-          <label><input type="checkbox" id="lockDrawn" checked> <span id="lockDrawn-label" translate="no"></span></label>
+          <label><input type="checkbox" id="lockDrawn" checked> <span class="setting-caption"><span id="lockDrawn-label" translate="no"></span><small class="setting-timing" data-setting-applies="now"></small></span></label>
           <button class="setting-info" type="button" aria-expanded="false" aria-controls="lockDrawn-note" aria-labelledby="lockDrawn-label">ⓘ</button>
         </div>
         <p class="setting-description small muted" id="lockDrawn-note" translate="no" hidden></p>
       </div>
       <div class="setting-item">
         <div class="setting-row">
-          <label><input type="checkbox" id="showTargets"> <span id="showTargets-label" translate="no"></span></label>
+          <label><input type="checkbox" id="showTargets"> <span class="setting-caption"><span id="showTargets-label" translate="no"></span><small class="setting-timing" data-setting-applies="now"></small></span></label>
           <button class="setting-info" type="button" aria-expanded="false" aria-controls="showTargets-note" aria-labelledby="showTargets-label">ⓘ</button>
         </div>
         <p class="setting-description small muted" id="showTargets-note" translate="no" hidden></p>
       </div>
       <div class="setting-item">
         <div class="setting-row">
-          <label><input type="checkbox" id="showUndo"> <span id="showUndo-label" translate="no"></span></label>
+          <label><input type="checkbox" id="showUndo"> <span class="setting-caption"><span id="showUndo-label" translate="no"></span><small class="setting-timing" data-setting-applies="now"></small></span></label>
           <button class="setting-info" type="button" aria-expanded="false" aria-controls="showUndo-note" aria-labelledby="showUndo-label">ⓘ</button>
         </div>
         <p class="setting-description small muted" id="showUndo-note" translate="no" hidden></p>
       </div>
     </fieldset>
-    <fieldset>
+    <fieldset class="settings-section">
       <legend id="settings-group-display" translate="no"></legend>
       <div class="setting-item">
         <div class="setting-row">
-          <label><span id="animationSpeed-label" translate="no"></span>
+          <label class="setting-stacked"><span class="setting-caption"><span id="animationSpeed-label" translate="no"></span><small class="setting-timing" data-setting-applies="now"></small></span>
             <select id="animationSpeed" translate="no">
               <option value="slow">Wolna</option>
               <option value="normal" selected>Normalna</option>
@@ -207,27 +217,27 @@ if (!new URLSearchParams(location.search).has('miniatura')) {
       </div>
       <div class="setting-item">
         <div class="setting-row">
-          <label><input type="checkbox" id="distinguishDecks" checked> <span id="distinguishDecks-label" translate="no"></span></label>
+          <label><input type="checkbox" id="distinguishDecks" checked> <span class="setting-caption"><span id="distinguishDecks-label" translate="no"></span><small class="setting-timing" data-setting-applies="now"></small></span></label>
           <button class="setting-info" type="button" aria-expanded="false" aria-controls="distinguishDecks-note" aria-labelledby="distinguishDecks-label">ⓘ</button>
         </div>
         <p class="setting-description small muted" id="distinguishDecks-note" translate="no" hidden></p>
       </div>
       <div class="setting-item">
         <div class="setting-row">
-          <label><input type="checkbox" id="showCounts"> <span id="showCounts-label" translate="no"></span></label>
+          <label><input type="checkbox" id="showCounts"> <span class="setting-caption"><span id="showCounts-label" translate="no"></span><small class="setting-timing" data-setting-applies="now"></small></span></label>
           <button class="setting-info" type="button" aria-expanded="false" aria-controls="showCounts-note" aria-labelledby="showCounts-label">ⓘ</button>
         </div>
         <p class="setting-description small muted" id="showCounts-note" translate="no" hidden></p>
       </div>
       <div class="setting-item">
         <div class="setting-row">
-          <label><input type="checkbox" id="showMoveLog"> <span id="showMoveLog-label" translate="no"></span></label>
+          <label><input type="checkbox" id="showMoveLog"> <span class="setting-caption"><span id="showMoveLog-label" translate="no"></span><small class="setting-timing" data-setting-applies="now"></small></span></label>
           <button class="setting-info" type="button" aria-expanded="false" aria-controls="showMoveLog-note" aria-labelledby="showMoveLog-label">ⓘ</button>
         </div>
         <p class="setting-description small muted" id="showMoveLog-note" translate="no" hidden></p>
       </div>
     </fieldset>
-    <button class="primary">Done</button>
+    </div>
   </form>
 </dialog>
 <dialog id="help" aria-labelledby="help-title">
@@ -244,6 +254,7 @@ if (!new URLSearchParams(location.search).has('miniatura')) {
 <script src="shared-victory.js?v=5"></script>
 <script src="progress.js?v=0.10.0"></script>
 <script src="help.js?v=0.11.0"></script>
-<script src="app.js?v=1.1.0"></script>
+<script src="settings-strings.js?v=1.2.0"></script>
+<script src="app.js?v=1.2.0"></script>
 </body>
 </html>

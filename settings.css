@@ -1,0 +1,14 @@
+/* Garibaldka select controls within the shared Games Chest settings layout. */
+#settings .setting-row .setting-stacked {
+  display: grid;
+  gap: 6px;
+}
+#settings .setting-row select {
+  inline-size: 100%;
+  max-inline-size: none;
+  min-inline-size: 0;
+  min-block-size: 44px;
+}
+#settings .settings-heading { direction: ltr; }
+#settings .settings-heading h2 { flex: 1; }
+#settings :is(button, label) { -webkit-tap-highlight-color: transparent; }
