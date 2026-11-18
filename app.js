@@ -679,6 +679,35 @@
       ? endingLabels()[4] : stallLabels[prefs.language] ?? stallLabels.en;
     return reason + ' ' + result + ' · ' + remainingCounts();
   }
+  function toolbarButton(control, icon, text) {
+    if (!control.querySelector('.toolbar-label')) {
+      const symbol = document.createElement('span');
+      symbol.className = 'toolbar-icon';
+      symbol.setAttribute('aria-hidden', 'true');
+      symbol.textContent = icon;
+      const label = document.createElement('span');
+      label.className = 'toolbar-label';
+      control.replaceChildren(symbol, label);
+      control.translate = false;
+    }
+    control.querySelector('.toolbar-label').textContent = text;
+    control.setAttribute('aria-label', text);
+    control.title = text;
+  }
+
+  function fitToolbar() {
+    const toolbar = document.querySelector('.game-toolbar');
+    toolbar.classList.remove('toolbar-compact', 'toolbar-icons', 'toolbar-new-icon', 'toolbar-overflow');
+    const style = getComputedStyle(toolbar);
+    const available = toolbar.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+    const required = () => Math.ceil(get('new-game').getBoundingClientRect().width +
+      toolbar.querySelector('.game-tools').getBoundingClientRect().width + 8);
+    if (required() > available) toolbar.classList.add('toolbar-compact');
+    if (required() > available) toolbar.classList.add('toolbar-icons');
+    if (required() > available) toolbar.classList.add('toolbar-new-icon');
+    if (required() > available) toolbar.classList.add('toolbar-overflow');
+  }
+
   function render() {
     if (!thumbnailTheme) {
       const next = Object.keys(rewards).filter(locked).sort((a, b) => rewards[a] - rewards[b])[0];
@@ -701,9 +730,9 @@
     get('showUndo-note').textContent = historyNote;
     for (const [id, text, entries] of [['undo', undo, history], ['redo', redo, future]]) {
       const control = get(id);
-      control.textContent = text;
+      toolbarButton(control, id === 'undo' ? '↶' : '↷', text);
       control.hidden = !prefs.showUndo;
-      control.disabled = !entries.length;
+      control.disabled = !prefs.showUndo || !entries.length;
     }
     const [speedLabel, speedNote, ...speedNames] = animationStrings[prefs.language] ?? animationStrings.en;
     get('animationSpeed-label').textContent = speedLabel;
@@ -736,7 +765,8 @@
     document.documentElement.classList.toggle('garden-theme', garden);
     document.documentElement.classList.toggle('tangerine-grove-theme', grove);
     document.body.classList.toggle('large', prefs.large);
-    get('contrast').textContent = '◐ ' + tr('High contrast');
+    get('contrast').textContent = prefs.language === 'pl' ? '◐ Kontrast' : tr('◐ Contrast');
+    get('contrast').setAttribute('aria-label', tr('High contrast'));
     get('contrast').setAttribute('aria-pressed', prefs.contrast);
     get('large-label').textContent = 'A+';
     get('large').setAttribute('aria-label', tr('Larger text'));
@@ -769,7 +799,8 @@
     const gameName = gameNames[prefs.language] ?? gameNames.en;
     document.title = get('game-name').textContent = gameName;
     const helpLabel = prefs.language === 'pl' ? 'Jak grać?' : tr('How to play');
-    get('help-button').textContent = helpLabel;
+    toolbarButton(get('help-button'), '?', helpLabel);
+    toolbarButton(get('new-game'), '+', prefs.language === 'pl' ? 'Nowa gra' : tr('New game'));
     get('help-title').textContent = helpLabel + ' · ' + gameName;
     board();
     personal(get('opponent'), 1);
@@ -794,6 +825,7 @@
     if (status.textContent !== text) status.textContent = text;
     get('save-note').textContent = label(saved ? 20 : 21);
     i18n.apply(document.body, prefs.language);
+    fitToolbar();
     if (oldFocus) {
       const nextId = oldFocus === 'draw' + human && selected?.group === 'drawn' ? key(selected) : oldFocus;
       const next = cardAt(nextId);
@@ -976,6 +1008,7 @@
     }
     render();
   });
+  new ResizeObserver(fitToolbar).observe(document.querySelector('.game-toolbar'));
   restoreFoundationOrder();
   engine.setKingsOnly(state, prefs.kingsOnly);
   if (thumbnailTheme) render();

@@ -41,16 +41,16 @@ const immediateRuleLabels = {
 };
 
 const historyStrings = {
-  pl: ['Cofnij','Przywróć','Pokaż Cofnij i Przywróć','Działa od razu. Cofnij wraca do stanu sprzed Twojego ostatniego ruchu, razem z odpowiedzią komputera. Nowy ruch po cofnięciu usuwa możliwość przywrócenia.'],
-  en: ['Undo','Redo','Show Undo and Redo','Applies immediately. Undo takes you back before your last move, including the computer’s response. A new move clears redo.'],
-  es: ['Deshacer','Rehacer','Mostrar Deshacer y Rehacer','Se aplica de inmediato. Deshacer revierte tu última jugada y la respuesta de la computadora. Una nueva jugada borra la opción de rehacer.'],
-  de: ['Rückgängig','Wiederholen','Rückgängig und Wiederholen anzeigen','Gilt sofort. Rückgängig nimmt deinen letzten Zug samt Antwort des Computers zurück. Ein neuer Zug löscht die Wiederholungsmöglichkeit.'],
-  'zh-Hans': ['撤销','重做','显示撤销和重做','立即生效。撤销会退回到你上一步之前，包括电脑的应对。走新一步会清除重做记录。'],
-  hi: ['पूर्ववत करें','फिर से करें','पूर्ववत और फिर से करें दिखाएँ','तुरंत लागू होता है। पूर्ववत करने पर आपकी पिछली चाल और कंप्यूटर का जवाब वापस होते हैं। नई चाल से फिर से करने का विकल्प मिट जाता है।'],
-  fr: ['Annuler','Rétablir','Afficher Annuler et Rétablir','Effet immédiat. Annuler revient avant votre dernier coup et la réponse de l’ordinateur. Un nouveau coup efface le rétablissement.'],
-  ar: ['تراجع','إعادة','إظهار التراجع والإعادة','يسري فورًا. يعيد التراجع اللعب إلى ما قبل حركتك الأخيرة ورد الحاسوب. تمحو الحركة الجديدة سجل الإعادة.'],
-  it: ['Annulla','Ripristina','Mostra Annulla e Ripristina','Vale subito. Annulla torna a prima della tua ultima mossa e della risposta del computer. Una nuova mossa cancella il ripristino.'],
-  uk: ['Скасувати','Повторити','Показати Скасувати й Повторити','Діє відразу. Скасування повертає стан до вашого останнього ходу й відповіді комп’ютера. Новий хід стирає можливість повторення.']
+  pl: ['Cofnij','Przywróć','Cofnij i Przywróć','Działa od razu. Cofnij wraca do stanu sprzed Twojego ostatniego ruchu, razem z odpowiedzią komputera. Nowy ruch po cofnięciu usuwa możliwość przywrócenia. Po wyłączeniu oba przyciski są ukryte. Po włączeniu pozostają widoczne, ale nieaktywne, gdy brak historii.'],
+  en: ['Undo','Redo','Undo and Redo','Applies immediately. Undo takes you back before your last move, including the computer’s response. A new move clears redo. When off, both buttons are hidden. When on, both remain visible and are disabled when no history is available.'],
+  es: ['Deshacer','Rehacer','Deshacer y Rehacer','Se aplica de inmediato. Deshacer revierte tu última jugada y la respuesta de la computadora. Una nueva jugada borra la opción de rehacer. Al desactivarlo se ocultan ambos botones. Activado, siguen visibles e inactivos cuando no hay historial.'],
+  de: ['Rückgängig','Wiederholen','Rückgängig und Wiederholen','Gilt sofort. Rückgängig nimmt deinen letzten Zug samt Antwort des Computers zurück. Ein neuer Zug löscht die Wiederholungsmöglichkeit. Ausgeschaltet sind beide Tasten verborgen. Eingeschaltet bleiben sie sichtbar und sind ohne Verlauf deaktiviert.'],
+  'zh-Hans': ['撤销','重做','撤销和重做','立即生效。撤销会退回到你上一步之前，包括电脑的应对。走新一步会清除重做记录。 关闭后隐藏两个按钮；开启后始终显示，没有相应历史时不可用。'],
+  hi: ['पूर्ववत करें','फिर से करें','पूर्ववत और फिर से करें','तुरंत लागू होता है। पूर्ववत करने पर आपकी पिछली चाल और कंप्यूटर का जवाब वापस होते हैं। नई चाल से फिर से करने का विकल्प मिट जाता है। बंद होने पर दोनों बटन छिपते हैं। चालू होने पर दिखाई देते हैं और इतिहास न होने पर निष्क्रिय रहते हैं।'],
+  fr: ['Annuler','Rétablir','Annuler et Rétablir','Effet immédiat. Annuler revient avant votre dernier coup et la réponse de l’ordinateur. Un nouveau coup efface le rétablissement. Désactivé, les deux boutons sont masqués. Activé, ils restent visibles et sont inactifs sans historique.'],
+  ar: ['تراجع','إعادة','التراجع والإعادة','يسري فورًا. يعيد التراجع اللعب إلى ما قبل حركتك الأخيرة ورد الحاسوب. تمحو الحركة الجديدة سجل الإعادة. عند التعطيل يُخفى الزران. عند التفعيل يبقيان ظاهرين ويُعطّلان عند عدم وجود سجل مناسب.'],
+  it: ['Annulla','Ripristina','Annulla e Ripristina','Vale subito. Annulla torna a prima della tua ultima mossa e della risposta del computer. Una nuova mossa cancella il ripristino. Se disattivato, entrambi i pulsanti sono nascosti. Se attivato restano visibili, ma inattivi senza cronologia.'],
+  uk: ['Скасувати','Повторити','Скасувати й Повторити','Діє відразу. Скасування повертає стан до вашого останнього ходу й відповіді комп’ютера. Новий хід стирає можливість повторення. Після вимкнення обидві кнопки приховані. Після ввімкнення вони видимі, але неактивні без відповідної історії.']
 };
 
 const panelStrings = {
