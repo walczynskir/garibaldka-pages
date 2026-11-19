@@ -25,6 +25,7 @@
   min-height: 44px;
   flex: 0 0 auto;
   padding: 8px 12px;
+  white-space: nowrap;
 }
 .solitaire .game-toolbar button.shared-settings-button {
   display: inline-grid;
@@ -38,14 +39,14 @@
 
 .solitaire .game-toolbar.toolbar-compact #fullscreen,
 .solitaire .game-toolbar.toolbar-compact #help-button,
-.solitaire .game-toolbar.toolbar-icons .game-tools button {
+.solitaire .game-toolbar.toolbar-icons .game-tools button:not(#game-picker-button) {
   width: 44px;
   height: 44px;
   padding: 0;
 }
 .game-toolbar.toolbar-compact #fullscreen .fullscreen-label,
 .game-toolbar.toolbar-compact #help-button .toolbar-label,
-.game-toolbar.toolbar-icons .game-tools .toolbar-label { display: none; }
+.game-toolbar.toolbar-icons .game-tools :not(#game-picker-button) > .toolbar-label { display: none; }
 .game-toolbar.toolbar-compact #fullscreen .fullscreen-icon,
 .game-toolbar.toolbar-compact #help-button .toolbar-icon,
 .game-toolbar.toolbar-icons .game-tools .toolbar-icon { display: inline; font-size: 24px; line-height: 1; }
@@ -103,7 +104,17 @@ header #contrast { min-height: 44px; }
 .solitaire .game-toolbar.toolbar-new-icon #new-game .toolbar-icon { display: inline; }
 
 @media (max-width: 360px) {
-  .table-only .solitaire .game-toolbar { padding-inline: 8px; }
+  .solitaire .game-toolbar,
+  .solitaire .game-toolbar .game-tools { gap: 1px; }
+  .solitaire .game-toolbar {
+    width: calc(100% + 20px);
+    margin-inline: -10px;
+  }
+  .table-only .solitaire .game-toolbar {
+    width: calc(100% + 12px);
+    margin-inline: -6px;
+    padding-inline: 0;
+  }
 }
 
 /* Preserve board height in low landscape fullscreen. */

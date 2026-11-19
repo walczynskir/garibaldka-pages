@@ -161,7 +161,11 @@
     state.goals.some(pile => pile.length) || state.players.some(player =>
       player.drawn.length || player.waste.length || player.stock.length !== 35 || player.reserve.length !== 13)));
   let pendingResult = savedGame?.pendingResult ?? null;
-  let gameId = savedGame?.gameId ?? (thumbnailTheme ? null : crypto.randomUUID());
+  function newGameId() {
+    return crypto.randomUUID?.() ?? Array.from(crypto.getRandomValues(new Uint8Array(16)),
+      byte => byte.toString(16).padStart(2, '0')).join('');
+  }
+  let gameId = savedGame?.gameId ?? (thumbnailTheme ? null : newGameId());
   let rewarded = savedGame?.rewarded ?? (engine.resultWinner(state) === 0);
   let selected;
   let lastCardClick;
@@ -702,16 +706,18 @@
     control.title = text;
   }
 
+  document.querySelector('#game-picker-button').addEventListener('game-picker-label-change', fitToolbar);
   function fitToolbar() {
     const toolbar = document.querySelector('.game-toolbar');
-    toolbar.classList.remove('toolbar-compact', 'toolbar-icons', 'toolbar-new-icon', 'toolbar-overflow');
+    toolbar.classList.remove('toolbar-compact', 'toolbar-icons', 'toolbar-new-icon', 'toolbar-picker-icon', 'toolbar-overflow');
     const style = getComputedStyle(toolbar);
     const available = toolbar.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
     const required = () => Math.ceil(get('new-game').getBoundingClientRect().width +
-      toolbar.querySelector('.game-tools').getBoundingClientRect().width + 8);
+      toolbar.querySelector('.game-tools').getBoundingClientRect().width + parseFloat(style.columnGap));
     if (required() > available) toolbar.classList.add('toolbar-compact');
     if (required() > available) toolbar.classList.add('toolbar-icons');
     if (required() > available) toolbar.classList.add('toolbar-new-icon');
+    if (required() > available) toolbar.classList.add('toolbar-picker-icon');
     if (required() > available) toolbar.classList.add('toolbar-overflow');
   }
 
@@ -885,8 +891,8 @@
     if (status.textContent !== text) status.textContent = text;
     get('save-note').textContent = label(saved ? 20 : 21);
     i18n.apply(document.body, prefs.language);
-    fitToolbar();
     renderSettings();
+    fitToolbar();
     if (oldFocus) {
       const nextId = oldFocus === 'draw' + human && selected?.group === 'drawn' ? key(selected) : oldFocus;
       const next = cardAt(nextId);
@@ -976,7 +982,7 @@
     for(const name of Object.keys(activeRules)) activeRules[name]=prefs[name];
     started = false;
     pendingResult = null;
-    gameId = crypto.randomUUID();
+    gameId = newGameId();
     GameVictory(false);
     history.length = 0;
     future.length = 0;
@@ -1068,7 +1074,8 @@
         if (document.fullscreenElement) await document.exitFullscreen();
         return;
       }
-      await document.documentElement.requestFullscreen?.();
+      if (!document.fullscreenEnabled || !document.documentElement.requestFullscreen) return;
+      await document.documentElement.requestFullscreen();
       const phone = matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) <= 600;
       if (phone && document.body.classList.contains('table-only') && screen.orientation?.lock) {
         await screen.orientation.lock('landscape');
@@ -1084,6 +1091,15 @@
     }
     render();
   });
+  window.addEventListener('resize', fitToolbar);
+  window.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !event.defaultPrevented && !document.fullscreenElement &&
+        document.body.classList.contains('table-only') && !document.querySelector('dialog[open]')) {
+      get('fullscreen').click();
+      get('fullscreen').focus();
+    }
+  });
+  document.fonts.ready.then(fitToolbar);
   new ResizeObserver(fitToolbar).observe(document.querySelector('.game-toolbar'));
   restoreFoundationOrder();
   if (!savedGame) engine.setKingsOnly(state, activeRules.kingsOnly);
