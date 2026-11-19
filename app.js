@@ -1,4 +1,6 @@
 (() => {
+  let backupRecoveryFailed = false;
+  try { GaribaldkaBackup.recover(localStorage); } catch { backupRecoveryFailed = true; }
   const engine = GaribaldkaEngine;
   const i18n = DominoI18n;
   const get = id => document.getElementById(id);
@@ -149,6 +151,7 @@
     return previewSeed / 4294967296;
   };
   let state = savedGame?.state ?? savedGame ?? engine.deal(prefs, thumbnailTheme ? previewRandom : Math.random);
+  const activeRules = Object.fromEntries(['strict','kingsOnly','reservePriority'].map(k=>[k,state[k] ?? prefs[k]]));
   const history = savedGame?.history ?? [];
   const future = savedGame?.future ?? [];
   let lastWinner = savedGame?.lastWinner ?? null;
@@ -162,7 +165,7 @@
   let rewarded = savedGame?.rewarded ?? (engine.resultWinner(state) === 0);
   let selected;
   let lastCardClick;
-  let saved = true;
+  let saved = !backupRecoveryFailed;
   let computerTimer;
   let computerFlight;
   let stopReady = false;
@@ -186,11 +189,14 @@
   const suits = ['♠', '♥', '♣', '♦'];
   const face = card => ['A','2','3','4','5','6','7','8','9','10','J','Q','K'][engine.rank(card) - 1] +
     suits[engine.suit(card)];
-  const locked = theme => wins < (rewards[theme] ?? 0);
+  let unlockedThemes = thumbnailTheme ? [] : read('garibaldka.unlocks.v1') ?? [];
+  const locked = theme => !unlockedThemes.includes(theme) && wins < (rewards[theme] ?? 0);
 
   function save() {
     if (thumbnailTheme) return;
     try {
+      if (backupRecoveryFailed) throw Error('Recovery required');
+      localStorage.setItem('garibaldka.unlocks.v1', JSON.stringify(earnedThemes()));
       localStorage.setItem(gameKey, JSON.stringify({ state, history, future, rewarded, lastWinner, gameId, started, pendingResult }));
       localStorage.setItem(prefsKey, JSON.stringify(prefs));
       localStorage.setItem(winsKey, JSON.stringify(wins));
@@ -200,6 +206,7 @@
 
   function recordResult(outcome, reason = 'natural') {
     if (thumbnailTheme) return;
+    if (backupRecoveryFailed) return false;
     Object.assign(results, read(resultsKey));
     if (Object.hasOwn(results, gameId)) return true;
     const entry = { outcome, reason, endedAt: Date.now() };
@@ -430,12 +437,12 @@
 
   function applyStopPreference() {
     const keepReview = state.turn === computer && waitsForContinue();
-    if (!prefs.strict && state.pending && !keepReview) {
+    if (!activeRules.strict && state.pending && !keepReview) {
       if (state.turn === human && state.stopBy === computer) delete state.stopBy;
       return applyAction(state.pending.action, () => engine.setStrict(state, false));
     }
-    engine.setStrict(state, prefs.strict, keepReview);
-    engine.setReservePriority(state, prefs.reservePriority);
+    engine.setStrict(state, activeRules.strict, keepReview);
+    engine.setReservePriority(state, activeRules.reservePriority);
     if (state.pending && state.turn === human && !state.pending.required.length) {
       if (state.stopBy === computer) delete state.stopBy;
       return applyAction(state.pending.action, () => engine.resolveChallenge(state, computer));
@@ -448,7 +455,7 @@
     update(() => {
       to.push(state);
       state = from.pop();
-      engine.setKingsOnly(state, prefs.kingsOnly);
+      engine.setKingsOnly(state, activeRules.kingsOnly);
       applyStopPreference();
     }, { selectDrawn: false });
     if (humanCanPlay() && state.players[human].drawn.length) {
@@ -708,7 +715,37 @@
     if (required() > available) toolbar.classList.add('toolbar-overflow');
   }
 
+
+  const backupSchema = {game:'garibaldka',languages:i18n.languages,options:{},validProgress:GaribaldkaBackup.validProgress};
+  for(const name of ['strict','reservePriority','falseStopPenalty','kingsOnly','showUndo','showCounts','showMoveLog','showTargets','lockDrawn','distinguishDecks'])backupSchema.options[name]=v=>typeof v==='boolean';
+  backupSchema.options.stopWindow=v=>['unlimited','2000','4000','7000'].includes(v);
+  backupSchema.options.difficulty=v=>['easy','medium','high','expert'].includes(v);
+  backupSchema.options.animationSpeed=v=>['slow','normal','fast'].includes(v);
+  function earnedThemes(){return GaribaldkaBackup.rewardIds.filter(id=>unlockedThemes.includes(id)||wins>=(rewards[id]??0));}
+  const currentProgress=()=>({wins,records:{...results,...read(resultsKey)},unlockedThemes:earnedThemes()});
+  let backupStatus='',backupCandidate;
+  const backupCopy=()=>progressTransferStrings[prefs.language]??progressTransferStrings.en;
+  function renderBackup(){const c=backupCopy();get('preferences-file-heading').textContent=c[0];get('export-preferences').textContent=c[1];get('import-preferences').textContent=c[2];get('preferences-file-scope').textContent=c[3];get('preferences-status').textContent=backupStatus;get('retry-preferences').hidden=true;}
+  function backupError(code){const indexes={invalid:8,game:9,version:10,read:11,write:12,export:13};backupStatus=(preferencesTransferStrings[prefs.language]??preferencesTransferStrings.en)[indexes[code]??8];renderBackup();}
+  get('export-preferences').onclick=()=>{try{const text=GamesChestBackup.stringify(prefs,currentProgress(),backupSchema);const url=URL.createObjectURL(new Blob([text],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='garibaldka-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}catch{backupError('export');}};
+  get('import-preferences').onclick=()=>get('preferences-file').click();
+  get('preferences-file').onchange=async()=>{const input=get('preferences-file'),file=input.files[0];input.value='';if(!file)return;try{if(file.size>GamesChestBackup.maxBytes)throw Error('invalid');let text;try{text=await file.text();}catch{throw Object.assign(Error(),{code:'read'});}backupCandidate=GamesChestBackup.parse(text,backupSchema);const c=backupCopy(),merged=GaribaldkaBackup.merge(currentProgress(),backupCandidate.progress);get('progress-import-title').textContent=c[5];get('progress-import-description').textContent=c[6];get('progress-import-stats').textContent=c[12]+': '+c[9]+' '+wins+' / '+merged.wins+' · '+c[10]+' '+Object.values(results).filter(r=>r.outcome==='loss').length+' / '+Object.values(merged.records).filter(r=>r.outcome==='loss').length+' · '+c[11]+' '+earnedThemes().length+' / '+merged.unlockedThemes.length;get('progress-import-note').textContent=c[14];get('cancel-progress').textContent=c[7];get('restore-progress').textContent=c[8];get('progress-import-error').hidden=true;get('confirm-progress').showModal();}catch(e){backupCandidate=undefined;backupError(e.code??'invalid');}};
+  get('restore-progress').onclick=()=>{if(!backupCandidate)return;try{
+    if(backupRecoveryFailed){GaribaldkaBackup.recover(localStorage);backupRecoveryFailed=false;}
+    const merged=GaribaldkaBackup.merge(currentProgress(),backupCandidate.progress);
+    const imported=GamesChestPreferences.resolveTheme(backupCandidate.preferences,prefs.theme,id=>Object.hasOwn(themes,id),id=>merged.unlockedThemes.includes(id)||!rewards[id]);
+    const nextPrefs={...prefs,...imported.preferences};
+    GaribaldkaBackup.commit(localStorage,{[prefsKey]:JSON.stringify(nextPrefs),[winsKey]:JSON.stringify(merged.wins),[resultsKey]:JSON.stringify(merged.records),'garibaldka.unlocks.v1':JSON.stringify(merged.unlockedThemes)});
+    Object.assign(prefs,nextPrefs);Object.assign(results,merged.records);wins=merged.wins;unlockedThemes=merged.unlockedThemes;
+    for(const name of Object.keys(backupSchema.options)){const control=get(name);if(control.type==='checkbox')control.checked=prefs[name];else control.value=prefs[name];}
+    get('language').value=prefs.language;get('large').checked=prefs.large;
+    backupStatus=backupCopy()[4]+(imported.skipped?' '+(preferencesTransferStrings[prefs.language]??preferencesTransferStrings.en)[imported.skipped==='locked'?6:7]:'');
+    backupCandidate=undefined;get('confirm-progress').close();render();
+  }catch{backupRecoveryFailed=Boolean(localStorage.getItem('garibaldka.backup-transaction.v1'));get('progress-import-error').textContent=(preferencesTransferStrings[prefs.language]??preferencesTransferStrings.en)[12];get('progress-import-error').hidden=false;}};
+  get('confirm-progress').addEventListener('close',()=>{backupCandidate=undefined;get('import-preferences').focus();});
+
   function renderSettings() {
+    renderBackup();
     const copy = settingsDialogStrings[prefs.language] ?? settingsDialogStrings.en;
     get('settings-title').textContent = tr('Settings');
     get('settings-dismiss').setAttribute('aria-label', tr('Close'));
@@ -884,6 +921,7 @@
     else node.value = prefs[name];
     node.onchange = () => {
       prefs[name] = checkbox ? node.checked : node.value;
+      if (Object.hasOwn(activeRules,name)) activeRules[name]=prefs[name];
       if (name === 'animationSpeed' || name === 'stopWindow') scheduleComputer();
       if (name === 'strict' || name === 'reservePriority') {
         update(applyStopPreference);
@@ -892,7 +930,7 @@
       if (name === 'kingsOnly') {
         update(() => {
           const wasWaiting = waitingForStopAcknowledgment() && state.turn === human;
-          engine.setKingsOnly(state, prefs.kingsOnly);
+          engine.setKingsOnly(state, activeRules.kingsOnly);
           if (wasWaiting && !state.pending) delete state.stopBy;
         });
         return;
@@ -935,6 +973,7 @@
       render();
       return;
     }
+    for(const name of Object.keys(activeRules)) activeRules[name]=prefs[name];
     started = false;
     pendingResult = null;
     gameId = crypto.randomUUID();
@@ -1047,7 +1086,8 @@
   });
   new ResizeObserver(fitToolbar).observe(document.querySelector('.game-toolbar'));
   restoreFoundationOrder();
-  engine.setKingsOnly(state, prefs.kingsOnly);
+  if (!savedGame) engine.setKingsOnly(state, activeRules.kingsOnly);
   if (thumbnailTheme) render();
+  else if (savedGame) update(() => {});
   else update(applyStopPreference);
 })();

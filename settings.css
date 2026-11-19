@@ -12,3 +12,7 @@
 #settings .settings-heading { direction: ltr; }
 #settings .settings-heading h2 { flex: 1; }
 #settings :is(button, label) { -webkit-tap-highlight-color: transparent; }
+
+#confirm-progress .settings-backup-actions { display:flex; flex-wrap:wrap; gap:8px; }
+#confirm-progress button { min-width:44px; min-height:44px; }
+#confirm-progress { overflow:auto; max-height:90dvh; }
