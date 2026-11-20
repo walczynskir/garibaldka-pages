@@ -19,24 +19,38 @@
 .progress-chevron { margin-inline-start: .2em; }
 [dir="rtl"] .progress-chevron { transform: scaleX(-1); }
 .table-only #my-progress { display: none; }
-#statistics { max-height: min(85vh, calc(100dvh - 24px)); }
-#statistics .dialog-heading { align-items: center; }
+/* Progress summary follows the flat metric rows in Domino. */
+#statistics {
+  inline-size: min(460px, calc(100% - 24px));
+  max-block-size: min(85vh, calc(100dvh - 24px));
+  padding: clamp(16px, 5vw, 25px);
+}
+#statistics .dialog-heading { align-items: center; gap: 8px; }
 #statistics-title { margin: 0; }
 #statistics-close { font-size: 1.35em; min-height: 44px; min-width: 44px; padding: 0; }
-#statistics-metrics {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+#statistics-metrics { margin-block: .7em 0; }
+#statistics .progress-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: .5em;
+  padding-block: .45em;
+  border-block-start: 1px solid var(--line);
 }
-#statistics-metrics div {
-  padding: 8px;
-  background: var(--wash);
-  border: 1px solid var(--line);
-  border-radius: 8px;
+#statistics .progress-stat dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }
+#statistics-recent-title { margin: 1em 0 .35em; font-size: 1em; }
+#statistics-empty { margin: 0; color: var(--muted); }
+#statistics-recent { margin: 0; padding: 0; list-style: none; font-size: inherit; }
+#statistics-recent li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: .2em .8em;
+  padding-block: .35em;
+  margin: 0;
+  border-block-start: 1px solid var(--line);
 }
-#statistics-metrics dd { margin: 0; font-size: 1.3em; font-weight: 700; }
-#statistics-recent { padding: 0; list-style: none; }
-#statistics-recent li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .2em .8em; }
+#statistics-recent time { color: var(--muted); white-space: nowrap; }
 @media (max-width: 600px) {
   body:not(.large) #my-progress { font-size: .875rem; }
   body:not(.large) #progress-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
