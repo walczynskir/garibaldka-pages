@@ -774,11 +774,21 @@
     }
   }
 
+  const statisticsReset = createStatisticsReset('garibaldka-statistics-baseline-v1', '#statistics',
+    () => ({ wins, ids: Object.keys({ ...results, ...read(resultsKey) }) }), () => {
+      renderProgressBar();
+      if (get('statistics').open) renderStatistics();
+    });
+
+  function renderProgressBar() {
+    if (thumbnailTheme) return;
+    const next = Object.keys(rewards).filter(locked).sort((a, b) => rewards[a] - rewards[b])[0];
+    GaribaldkaProgress.paintBar(prefs.language, statisticsReset.count('wins', wins),
+      next && { name: themeName(next), threshold: rewards[next], count: wins });
+  }
+
   function render() {
-    if (!thumbnailTheme) {
-      const next = Object.keys(rewards).filter(locked).sort((a, b) => rewards[a] - rewards[b])[0];
-      GaribaldkaProgress.paintBar(prefs.language, wins, next && { name: themeName(next), threshold: rewards[next] });
-    }
+    renderProgressBar();
     const groups = settingsGroupStrings[prefs.language] ?? settingsGroupStrings.en;
     for (const [group, title] of Object.entries(groups)) get('settings-group-' + group).textContent = title;
     computerFlight?.cancel();
@@ -962,9 +972,12 @@
   get('undo').onclick = () => stepHistory(history, future);
   get('redo').onclick = () => stepHistory(future, history);
   const statistics = get('statistics');
-  get('my-progress').onclick = () => {
+  function renderStatistics() {
     Object.assign(results, read(resultsKey));
-    GaribaldkaProgress.paintStats(prefs.language, Object.values(results).sort((a, b) => a.endedAt - b.endedAt));
+    GaribaldkaProgress.paintStats(prefs.language, statisticsReset.records(Object.entries(results)).map(([, result]) => result).sort((a, b) => a.endedAt - b.endedAt));
+  }
+  get('my-progress').onclick = () => {
+    renderStatistics();
     statistics.showModal();
     scheduleComputer();
   };

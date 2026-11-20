@@ -23,7 +23,7 @@ const GaribaldkaProgress = (() => {
     const reward = get('progress-reward');
     reward.hidden = !next;
     if (next) {
-      const fraction = number.format(wins) + '/' + number.format(next.threshold);
+      const fraction = number.format(next.count) + '/' + number.format(next.threshold);
       reward.lastElementChild.textContent = fraction;
       description.push(labels[13] + ' ' + next.name + ' ' + fraction);
       reward.title = labels[13] + ' · ' + next.name;
