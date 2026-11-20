@@ -14,9 +14,9 @@ Object.assign(garibaldkaStrings, {
 });
 const stallLabels = {
   pl: 'Impas. Żaden gracz nie może wykonać ruchu.', en: 'Stalemate. Neither player has a move.',
-  es: 'Tablas. Ningún jugador puede mover.', de: 'Patt. Kein Spieler kann ziehen.',
+  es: 'Ningún jugador puede mover.', de: 'Patt. Kein Spieler kann ziehen.',
   'zh-Hans': '僵局。双方都没有可走的步骤。', hi: 'गतिरोध। दोनों खिलाड़ियों के पास कोई चाल नहीं है।',
-  fr: 'Blocage. Aucun joueur ne peut jouer.', ar: 'تعادل. لا يستطيع أي لاعب التحرك.',
+  fr: 'Blocage. Aucun joueur ne peut jouer.', ar: 'لا يستطيع أي لاعب التحرك.',
   it: 'Stallo. Nessun giocatore può muovere.', uk: 'Пат. Жоден гравець не може зробити хід.'
 };
 const opponentStrings = {
@@ -159,7 +159,7 @@ const drawResultLabels = {
 const endingStrings = {
   pl: ['Zakończ partię','Zakończyć tę partię? Zostanie zapisana jako przerwana, bez zwycięzcy.','Graj dalej','Partia przerwana.','Impas po trzykrotnym powtórzeniu pozycji.'],
   en: ['End game','End this game? It will be saved as abandoned, with no winner.','Keep playing','Game abandoned.','Stalemate after the position repeated three times.'],
-  es: ['Terminar partida','¿Terminar esta partida? Se guardará como abandonada, sin ganador.','Seguir jugando','Partida abandonada.','Tablas por triple repetición de la posición.'],
+  es: ['Terminar partida','¿Terminar esta partida? Se guardará como abandonada, sin ganador.','Seguir jugando','Partida abandonada.','La posición se repitió tres veces.'],
   de: ['Spiel beenden','Dieses Spiel beenden? Es wird ohne Sieger als abgebrochen gespeichert.','Weiterspielen','Spiel abgebrochen.','Patt nach dreimaliger Stellungswiederholung.'],
   'zh-Hans': ['结束游戏','结束本局吗？本局将记为中止，无胜者。','继续游戏','本局已中止。','同一局面出现三次，陷入僵局。'],
   hi: ['खेल समाप्त करें','क्या खेल समाप्त करें? इसे बिना विजेता के अधूरा सहेजा जाएगा।','खेलते रहें','खेल बीच में समाप्त हुआ।','एक ही स्थिति तीन बार आने से गतिरोध।'],

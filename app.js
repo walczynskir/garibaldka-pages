@@ -190,6 +190,7 @@
   const key = pile => pile.group + pile.index;
   const label = index => (garibaldkaStrings[prefs.language] ?? garibaldkaStrings.en)[index];
   const tr = text => i18n.text(text, prefs.language);
+  const stopActionLabel = () => (settingsGroupStrings[prefs.language] ?? settingsGroupStrings.en).stop;
   const suits = ['♠', '♥', '♣', '♦'];
   const face = card => ['A','2','3','4','5','6','7','8','9','10','J','Q','K'][engine.rank(card) - 1] +
     suits[engine.suit(card)];
@@ -639,7 +640,7 @@
     if (finished()) return;
     const action = state.turn === computer ? state.pending?.action : null;
     if (state.strict && (!action || canChallengeComputerMove(action))) {
-      const stop = button('Stop!', callStop, 'stop');
+      const stop = button(stopActionLabel(), callStop, 'stop');
       stop.className = 'primary stop-call';
       stop.disabled = !stopReady || !canChallengeComputerMove(action);
       area.append(stop);
@@ -859,7 +860,7 @@
     for (const [id, index] of Object.entries({'kingsOnly-label':13,'kingsOnly-note':14,
       'strict-note':15})) get(id).textContent = label(index);
     GaribaldkaHelp.render(prefs.language, get('help-content'));
-    get('strict-label').textContent = 'Stop!';
+    get('strict-label').textContent = stopActionLabel();
     const [priorityLabel, priorityNote] = reservePriorityStrings[prefs.language] ?? reservePriorityStrings.en;
     get('reservePriority-label').textContent = priorityLabel;
     get('reservePriority-note').textContent = priorityNote;
