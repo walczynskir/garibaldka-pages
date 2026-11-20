@@ -22,7 +22,7 @@
 #statistics { max-height: min(85vh, calc(100dvh - 24px)); }
 #statistics .dialog-heading { align-items: center; }
 #statistics-title { margin: 0; }
-#statistics-close { font-size: 1em; min-height: 44px; }
+#statistics-close { font-size: 1.35em; min-height: 44px; min-width: 44px; padding: 0; }
 #statistics-metrics {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

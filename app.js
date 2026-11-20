@@ -968,7 +968,10 @@
     statistics.showModal();
     scheduleComputer();
   };
-  statistics.addEventListener('close', scheduleComputer);
+  statistics.addEventListener('close', () => {
+    get('my-progress').focus();
+    scheduleComputer();
+  });
 
   function startNewGame() {
     if (pendingResult && !recordResult(pendingResult)) {

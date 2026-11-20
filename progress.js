@@ -47,7 +47,7 @@ const GaribaldkaProgress = (() => {
     const values = [decided + counts.draw, counts.win, counts.loss,
       decided ? rate.format(counts.win / decided) : '—', best, counts.abandoned];
     get('statistics-title').textContent = labels[1];
-    get('statistics-close').textContent = labels[15];
+    get('statistics-close').setAttribute('aria-label', labels[15]);
     const metrics = get('statistics-metrics');
     metrics.replaceChildren(...values.map((value, index) => {
       const pair = document.createElement('div');
