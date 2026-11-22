@@ -900,6 +900,7 @@
     const text = state.abandoned ? endingLabels()[3] + ' · ' + remainingCounts() : state.stalled ? clashLabel() : state.winner !== null ? winnerLabel()
       : state.pending ? messages()[state.turn === human && !waitingForStopAcknowledgment() ? 6 : 3] : messages()[state.turn + 2];
     if (status.textContent !== text) status.textContent = text;
+    get('save-note').dataset.saved = String(saved);
     get('save-note').textContent = label(saved ? 20 : 21);
     i18n.apply(document.body, prefs.language);
     renderSettings();
