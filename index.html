@@ -37,8 +37,8 @@ if (!new URLSearchParams(location.search).has('miniatura')) {
 <link rel="stylesheet" href="toolbar.css?v=picker-mobile-1">
 <link rel="stylesheet" href="shared-settings.css?v=1.3.0">
 <link rel="stylesheet" href="settings.css?v=1.3.0">
-<link rel="stylesheet" href="shared-footer.css?v=footer-row-2">
-<script defer src="shared-footer.js?v=footer-row-2"></script>
+<link rel="stylesheet" href="shared-footer.css?v=footer-save-errors-1">
+<script defer src="shared-footer.js?v=footer-save-errors-1"></script>
 </head>
 <body>
 <header><a class="brand" href="./"><img class="brand-logo" src="logo.svg?v=1.0.1" alt=""><span id="game-name" class="brand-name" dir="auto" translate="no">Garibaldka</span></a><div class="header-controls"><div class="accessibility-controls"><button id="contrast" translate="no" aria-pressed="false"></button><label class="text-size-control"><input type="checkbox" id="large"><span id="large-label"></span></label></div><div class="preferences"><label><span id="language-label"></span><select id="language"><option value="pl">Polski</option><option value="en">English</option></select></label><label><span id="theme-label"></span><select id="theme"></select></label></div></div></header>
@@ -94,9 +94,8 @@ if (!new URLSearchParams(location.search).has('miniatura')) {
   </section>
   <div class="footer-details">
     <a id="credits-link" href="credits.html" data-footer-copy="credits" translate="no">Autorzy i licencje</a>
-    <span id="footer-version" translate="no">v1.6.6</span>
-    <span id="save-note" translate="no"></span>
-    <span class="save-note-short" data-footer-copy="saved" translate="no" aria-hidden="true">Zapis automatyczny</span>
+    <span id="footer-version" translate="no">v1.6.7</span>
+    <span id="save-note" role="status" translate="no"></span>
   </div>
   <nav class="games-chest-menu" translate="no"><div class="recent-games" hidden><span></span><div class="recent-games-icons"></div></div></nav>
 </footer>
@@ -301,6 +300,7 @@ if (!new URLSearchParams(location.search).has('miniatura')) {
   <form method="dialog">
     <div class="dialog-heading"><h2 id="help-title" translate="no">How to play</h2><button aria-label="Close">×</button></div>
     <div id="help-content" translate="no"></div>
+    <p data-save-help translate="no"></p>
     <button class="primary">Done</button>
   </form>
 </dialog>
@@ -316,6 +316,6 @@ if (!new URLSearchParams(location.search).has('miniatura')) {
 <script src="shared-progress-backup.js?v=1.3.0"></script>
 <script src="preferences-strings.js?v=1.3.0"></script>
 <script src="progress-backup.js?v=1.3.0"></script>
-<script src="statistics-reset.js?v=1.6.2"></script><script src="app.js?v=footer-row-2"></script>
+<script src="statistics-reset.js?v=1.6.2"></script><script src="app.js?v=footer-save-errors-1"></script>
 </body>
 </html>
