@@ -1091,6 +1091,7 @@
         if (document.fullscreenElement) await document.exitFullscreen();
         return;
       }
+      if (matchMedia('(display-mode: standalone)').matches || navigator.standalone === true) return;
       if (!document.fullscreenEnabled || !document.documentElement.requestFullscreen) return;
       await document.documentElement.requestFullscreen();
       const phone = matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) <= 600;
