@@ -23,7 +23,7 @@
 <link rel="stylesheet" href="progress.css?v=1.5.1">
 <link rel="stylesheet" href="theme-gallery.css?v=0.9.0">
 <link rel="stylesheet" href="shared-victory.css?v=6">
-<link rel="stylesheet" href="games-chest-menu.css?v=icon-gallery-1"><script defer src="games-chest-menu.js?v=barbu-1" data-game="garibaldka"></script>
+<link rel="stylesheet" href="games-chest-menu.css?v=packed-grid-1"><script defer src="games-chest-menu.js?v=packed-grid-1" data-game="garibaldka"></script>
 <script>
 if (!new URLSearchParams(location.search).has('miniatura')) {
   const analytics = document.createElement('script');
@@ -94,7 +94,7 @@ if (!new URLSearchParams(location.search).has('miniatura')) {
   </section>
   <div class="footer-details">
     <a id="credits-link" href="credits.html" data-footer-copy="credits" translate="no">Autorzy i licencje</a>
-    <span id="footer-version" translate="no">v1.6.11</span>
+    <span id="footer-version" translate="no">v1.6.12</span>
     <span id="save-note" role="status" translate="no"></span>
   </div>
 </footer>
@@ -102,10 +102,6 @@ if (!new URLSearchParams(location.search).has('miniatura')) {
   <div class="game-picker-header">
     <h2 id="game-picker-title">Inne gry</h2>
     <form method="dialog"><button id="game-picker-close" type="submit" aria-label="Zamknij" autofocus>×</button></form>
-  </div>
-  <div id="game-picker-recent" hidden>
-    <h3 id="game-picker-recent-title">Ostatnio otwierane</h3>
-    <ul aria-labelledby="game-picker-recent-title"></ul>
   </div>
   <ul id="game-picker-list" aria-labelledby="game-picker-title"></ul>
   <a class="all-games game-picker-link" href="https://games-chest.com/">Wszystkie gry</a>
